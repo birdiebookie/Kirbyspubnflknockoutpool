@@ -4,1126 +4,428 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kirby's Knockout Pool</title>
-
 <style>
-    * {
-        box-sizing: border-box;
-    }
-
-    body {
-        margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
-        background: #f2f2f2;
-        color: #111;
-    }
-
-    .page {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    .header {
-        background: #111;
-        color: white;
-        border-radius: 10px 10px 0 0;
-        padding: 18px 20px;
-        text-align: center;
-    }
-
-    .header h1 {
-        margin: 0;
-        font-size: 30px;
-        letter-spacing: 1px;
-    }
-
-    .header p {
-        margin: 6px 0 0;
-        font-size: 15px;
-        color: #ddd;
-    }
-
-    .summary {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        margin: 10px 0;
-    }
-
-    .summary-box {
-        background: white;
-        border: 1px solid #bbb;
-        text-align: center;
-        padding: 10px;
-        border-radius: 6px;
-    }
-
-    .summary-box .number {
-        display: block;
-        font-size: 25px;
-        font-weight: bold;
-    }
-
-    .summary-box .label {
-        font-size: 12px;
-        font-weight: bold;
-    }
-
-    .two-picks .number {
-        color: #168000;
-    }
-
-    .one-pick .number {
-        color: #b88600;
-    }
-
-    .out .number {
-        color: #d00000;
-    }
-
-    .deadline {
-        background: #fff4c2;
-        border: 1px solid #e0c85a;
-        padding: 11px;
-        text-align: center;
-        font-weight: bold;
-        margin-bottom: 12px;
-        border-radius: 6px;
-    }
-
-    .pool-card {
-        background: white;
-        border: 1px solid #aaa;
-        border-radius: 6px;
-        overflow: hidden;
-    }
-
-    .table-wrap {
-        overflow-x: auto;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 650px;
-    }
-
-    th {
-        background: #222;
-        color: white;
-        padding: 10px 8px;
-        border: 1px solid #444;
-        font-size: 13px;
-    }
-
-    td {
-        border: 1px solid #aaa;
-        padding: 0;
-        height: 44px;
-        text-align: center;
-        font-weight: bold;
-    }
-
-    td.player {
-        text-align: left;
-        padding: 8px 10px;
-        white-space: nowrap;
-        background: white;
-        font-weight: bold;
-    }
-
-    td.pick {
-        background: white;
-        min-width: 145px;
-    }
-
-    td.status {
-        min-width: 95px;
-        background: #eee;
-        font-size: 12px;
-    }
-
-    .winner {
-        background: #fff200 !important;
-    }
-
-    .loser {
-        background: #ff0000 !important;
-        color: white;
-    }
-
-    .player-out {
-        background: #ff0000 !important;
-        color: white;
-    }
-
-    .pending {
-        background: white !important;
-        color: #111;
-    }
-
-    .status-two {
-        background: #dff0d8 !important;
-        color: #176b00;
-    }
-
-    .status-one {
-        background: #fff4c2 !important;
-        color: #8a6800;
-    }
-
-    .status-out {
-        background: #ff0000 !important;
-        color: white;
-    }
-
-    .controls {
-        margin-top: 15px;
-        background: white;
-        border: 1px solid #aaa;
-        border-radius: 6px;
-        padding: 15px;
-    }
-
-    .controls h2 {
-        margin: 0 0 12px;
-        font-size: 19px;
-    }
-
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    input, select, button {
-        font: inherit;
-    }
-
-    input, select {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #aaa;
-        border-radius: 5px;
-        background: white;
-    }
-
-    button {
-        border: 0;
-        border-radius: 5px;
-        padding: 10px 16px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    .blue-btn {
-        background: #1769aa;
-        color: white;
-    }
-
-    .green-btn {
-        background: #168000;
-        color: white;
-    }
-
-    .red-btn {
-        background: #d00000;
-        color: white;
-    }
-
-    .gray-btn {
-        background: #ddd;
-        color: #111;
-    }
-
-    .message {
-        margin-top: 10px;
-        padding: 9px;
-        border-radius: 5px;
-        display: none;
-        font-weight: bold;
-    }
-
-    .message.show {
-        display: block;
-    }
-
-    .message.good {
-        background: #dff0d8;
-        color: #176b00;
-    }
-
-    .message.bad {
-        background: #ffd6d6;
-        color: #a00000;
-    }
-
-    .section-title {
-        margin: 22px 0 8px;
-        font-size: 18px;
-    }
-
-    .my-picks {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    .pick-entry {
-        border: 1px solid #aaa;
-        border-radius: 6px;
-        padding: 12px;
-        background: #fafafa;
-    }
-
-    .pick-entry strong {
-        display: block;
-        margin-bottom: 7px;
-    }
-
-    .admin {
-        display: none;
-        margin-top: 15px;
-        background: #f8f8f8;
-        border: 2px solid #333;
-        border-radius: 6px;
-        padding: 15px;
-    }
-
-    .admin.show {
-        display: block;
-    }
-
-    .admin-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-    }
-
-    .admin-box {
-        background: white;
-        border: 1px solid #bbb;
-        border-radius: 6px;
-        padding: 12px;
-    }
-
-    .admin-box h3 {
-        margin-top: 0;
-    }
-
-    .small-note {
-        font-size: 12px;
-        color: #555;
-        margin-top: 6px;
-    }
-
-    footer {
-        text-align: center;
-        color: #666;
-        font-size: 12px;
-        padding: 18px;
-    }
-
-    @media (max-width: 700px) {
-        .page {
-            padding: 8px;
-        }
-
-        .header h1 {
-            font-size: 23px;
-        }
-
-        .form-row,
-        .admin-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .my-picks {
-            grid-template-columns: 1fr;
-        }
-    }
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#000;font-family:Calibri,Arial,sans-serif;font-size:15px}
+.wrap{width:min(900px,96%);margin:18px auto}
+h1{margin:0;font-size:25px;font-weight:700}
+.sub{font-size:13px;font-weight:700;margin:2px 0 12px}
+.notice{font-size:13px;font-weight:700;background:#fff200;border:1px solid #111;padding:6px 8px;margin-bottom:10px}
+.pool{width:100%;border-collapse:collapse;table-layout:fixed}
+.pool td{border:1px solid #cfcfcf;height:30px;padding:2px 7px}
+.pool .name{width:42%;font-size:16px;vertical-align:middle}
+.pool .x{width:6%;text-align:center;vertical-align:middle}
+.pool .team{width:52%;padding:0;vertical-align:middle}
+.pool .name.out{background:#f00}
+.teambox{height:29px;display:flex;align-items:center;padding:0 7px}
+.teambox.win{background:#70ad47;font-weight:700}
+.teambox.loss{background:#f00;font-weight:700}
+.teambox.pending{background:#fff}
+.teambox.hiddenpick{background:#fff}
+.entry{margin-top:12px;border-top:1px solid #aaa;padding-top:9px}
+.entrygrid{display:grid;grid-template-columns:1fr 1fr 145px;gap:8px}
+label{display:block;font-weight:700;font-size:13px;margin-bottom:3px}
+select,input{width:100%;height:31px;border:1px solid #666;border-radius:0;background:#fff;padding:3px 6px;font:inherit}
+button{height:31px;border:1px solid #555;background:#f4c542;font-weight:700;padding:0 12px;cursor:pointer}
+button:disabled{background:#ccc;color:#666;cursor:not-allowed}
+.info{margin-top:7px;font-size:13px;font-weight:700}
+.used{display:inline-flex;gap:4px;flex-wrap:wrap}
+.used span{background:#7a1724;color:#fff;padding:2px 6px;font-size:12px}
+.msg{margin-top:6px;font-weight:700}
+.good{color:#16702c}.bad{color:#b00000}
+.admin{margin-top:15px;border-top:1px solid #aaa;padding-top:9px}
+.admin h3{margin:0 0 8px}
+.adminbox{overflow:auto}
+.admin table{border-collapse:collapse;width:100%;min-width:1100px}
+.admin th,.admin td{border:1px solid #999;padding:5px;text-align:left}
+.admin th{background:#ddd}
+.admin select{height:26px}
+.small{height:25px;font-size:12px;padding:0 8px}
+.link{font:11px Consolas,monospace;word-break:break-all}
+.hidden{display:none}
+.note{font-size:11px;color:#666;margin-top:8px}
+@media(max-width:650px){.entrygrid{grid-template-columns:1fr}.wrap{width:98%}}
 </style>
 </head>
-
 <body>
+<div class="wrap">
+  <h1>KIRBY'S KNOCKOUT POOL</h1>
+  <div class="sub">NFL 2026 • PICK WINNERS • NO SPREAD</div>
+  <div class="notice">PICKS LOCK EVERY SUNDAY AT 1:00 PM EASTERN • PICKS ARE HIDDEN UNTIL THE LOCK</div>
 
-<div class="page">
+  <!-- MAIN POOL SHEET: ONE PLAYER = ONE TWO-ROW BLOCK -->
+  <table class="pool">
+    <tbody id="poolBody"></tbody>
+  </table>
 
-    <div class="header">
-        <h1>KIRBY'S KNOCKOUT POOL</h1>
-        <p>NFL 2026 • Pick Winners • No Spread</p>
+  <div class="entry">
+    <div id="playerTitle"><b>PLAYER ENTRY</b></div>
+    <div id="playerMessage" class="note">Use your personal invite link to enter your two teams.</div>
+
+    <div id="entryControls" class="hidden">
+      <div class="entrygrid">
+        <div>
+          <label>PICK 1</label>
+          <select id="pick1"></select>
+        </div>
+        <div>
+          <label>PICK 2</label>
+          <select id="pick2"></select>
+        </div>
+        <div style="display:flex;align-items:end">
+          <button id="submitBtn" style="width:100%">SUBMIT PICKS</button>
+        </div>
+      </div>
+      <div class="info">
+        MY STATUS: <span id="myStatus">2 PICKS</span>
+        &nbsp;&nbsp; TEAMS ALREADY USED:
+        <span id="usedTeams" class="used">None yet</span>
+      </div>
+      <div id="entryMsg" class="msg"></div>
+    </div>
+  </div>
+
+  <div style="text-align:right;margin-top:8px">
+    <button id="adminBtn">ORGANIZER / ADMIN</button>
+  </div>
+
+  <div id="admin" class="admin hidden">
+    <h3>ORGANIZER / ADMIN</h3>
+
+    <div class="entrygrid">
+      <div>
+        <label>PLAYER NAME</label>
+        <input id="newName" placeholder="John Smith">
+      </div>
+      <div>
+        <label>PHONE NUMBER</label>
+        <input id="newPhone" placeholder="513-555-1234">
+      </div>
+      <div style="display:flex;align-items:end">
+        <button id="addPlayer" style="width:100%">ADD PLAYER</button>
+      </div>
     </div>
 
-    <div class="summary">
-        <div class="summary-box two-picks">
-            <span class="number" id="twoCount">0</span>
-            <span class="label">2 PICKS</span>
-        </div>
+    <div id="adminMsg" class="msg"></div>
 
-        <div class="summary-box one-pick">
-            <span class="number" id="oneCount">0</span>
-            <span class="label">1 PICK</span>
-        </div>
-
-        <div class="summary-box out">
-            <span class="number" id="outCount">0</span>
-            <span class="label">OUT</span>
-        </div>
+    <div class="adminbox" style="margin-top:10px">
+      <table>
+        <thead>
+          <tr>
+            <th>PLAYER</th>
+            <th>PHONE</th>
+            <th>STATUS</th>
+            <th>PAYMENT</th>
+            <th>PAID DATE</th>
+            <th>PERSONAL INVITE LINK</th>
+            <th>PICKS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="adminBody"></tbody>
+      </table>
     </div>
 
-    <div class="deadline">
-        PICKS LOCK EVERY SUNDAY AT 1:00 PM EASTERN
+    <div class="note">
+      Phone numbers and payment information are Admin-only. Admin can copy or text each player's personal invite link.
     </div>
+  </div>
 
-    <div class="pool-card">
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>PLAYER</th>
-                        <th>PICK 1</th>
-                        <th>PICK 2</th>
-                        <th>STATUS</th>
-                    </tr>
-                </thead>
-
-                <tbody id="poolBody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="controls">
-        <h2>ENTER YOUR PICKS</h2>
-
-        <div class="form-row">
-            <div>
-                <label><strong>Your Name</strong></label>
-                <select id="playerSelect">
-                    <option value="">Select your name...</option>
-                </select>
-            </div>
-
-            <div>
-                <label><strong>Pick 1</strong></label>
-                <select id="pick1">
-                    <option value="">Select team...</option>
-                </select>
-            </div>
-
-            <div>
-                <label><strong>Pick 2</strong></label>
-                <select id="pick2">
-                    <option value="">Select team...</option>
-                </select>
-            </div>
-        </div>
-
-        <button class="green-btn" onclick="submitPicks()">SUBMIT PICKS</button>
-
-        <div id="message" class="message"></div>
-
-        <div class="small-note">
-            You may use a team's city, nickname, or common alias.
-            The system records the official NFL team.
-        </div>
-    </div>
-
-    <div class="controls">
-        <h2>MY STATUS</h2>
-
-        <div class="my-picks">
-            <div class="pick-entry">
-                <strong>Current Status</strong>
-                <span id="myStatus">Select your name above.</span>
-            </div>
-
-            <div class="pick-entry">
-                <strong>Teams Already Used</strong>
-                <span id="usedTeams">Select your name above.</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="controls">
-        <button class="gray-btn" onclick="openAdmin()">ORGANIZER / ADMIN</button>
-    </div>
-
-    <div id="adminPanel" class="admin">
-
-        <h2>ORGANIZER CONTROL PANEL</h2>
-
-        <div class="admin-grid">
-
-            <div class="admin-box">
-                <h3>Add Player</h3>
-
-                <input id="newPlayerName" placeholder="Player name">
-
-                <br><br>
-
-                <input id="newPlayerPhone" placeholder="Phone number">
-
-                <br><br>
-
-                <button class="blue-btn" onclick="addPlayer()">
-                    ADD PLAYER
-                </button>
-            </div>
-
-            <div class="admin-box">
-                <h3>Enter Game Results</h3>
-
-                <select id="resultTeam">
-                    <option value="">Select team...</option>
-                </select>
-
-                <br><br>
-
-                <select id="resultValue">
-                    <option value="">Result...</option>
-                    <option value="win">WIN</option>
-                    <option value="loss">LOSS</option>
-                </select>
-
-                <br><br>
-
-                <button class="green-btn" onclick="setResult()">
-                    SAVE RESULT
-                </button>
-
-                <button class="red-btn" onclick="clearResults()">
-                    CLEAR RESULTS
-                </button>
-            </div>
-
-        </div>
-
-        <div class="admin-box" style="margin-top:15px;">
-            <h3>Players</h3>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>PLAYER</th>
-                            <th>PHONE</th>
-                            <th>PICK 1</th>
-                            <th>PICK 2</th>
-                            <th>STATUS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
-
-    <footer>
-        Kirby's Knockout Pool • NFL Survivor / Knockout Pool
-    </footer>
-
+  <div class="note">
+    The main sheet intentionally stays simple: player name on the left, X beside it, and the two team boxes stacked vertically to the right.
+  </div>
 </div>
 
 <script>
-
-const teams = [
-    "Arizona Cardinals",
-    "Atlanta Falcons",
-    "Baltimore Ravens",
-    "Buffalo Bills",
-    "Carolina Panthers",
-    "Chicago Bears",
-    "Cincinnati Bengals",
-    "Cleveland Browns",
-    "Dallas Cowboys",
-    "Denver Broncos",
-    "Detroit Lions",
-    "Green Bay Packers",
-    "Houston Texans",
-    "Indianapolis Colts",
-    "Jacksonville Jaguars",
-    "Kansas City Chiefs",
-    "Las Vegas Raiders",
-    "Los Angeles Chargers",
-    "Los Angeles Rams",
-    "Miami Dolphins",
-    "Minnesota Vikings",
-    "New England Patriots",
-    "New Orleans Saints",
-    "New York Giants",
-    "New York Jets",
-    "Philadelphia Eagles",
-    "Pittsburgh Steelers",
-    "San Francisco 49ers",
-    "Seattle Seahawks",
-    "Tampa Bay Buccaneers",
-    "Tennessee Titans",
-    "Washington Commanders"
+const TEAMS=[
+"Cardinals","Falcons","Ravens","Bills","Panthers","Bears","Bengals","Browns",
+"Cowboys","Broncos","Lions","Packers","Texans","Colts","Jaguars","Chiefs",
+"Raiders","Chargers","Rams","Dolphins","Vikings","Patriots","Saints","Giants",
+"Jets","Eagles","Steelers","49ers","Seahawks","Buccaneers","Titans","Commanders"
 ];
 
-const aliases = {
-    "arizona": "Arizona Cardinals",
-    "cardinals": "Arizona Cardinals",
+const ADMIN_PIN="1978";
 
-    "atlanta": "Atlanta Falcons",
-    "falcons": "Atlanta Falcons",
-
-    "baltimore": "Baltimore Ravens",
-    "ravens": "Baltimore Ravens",
-
-    "buffalo": "Buffalo Bills",
-    "bills": "Buffalo Bills",
-
-    "carolina": "Carolina Panthers",
-    "panthers": "Carolina Panthers",
-
-    "chicago": "Chicago Bears",
-    "bears": "Chicago Bears",
-
-    "cincinnati": "Cincinnati Bengals",
-    "bengals": "Cincinnati Bengals",
-
-    "cleveland": "Cleveland Browns",
-    "browns": "Cleveland Browns",
-
-    "dallas": "Dallas Cowboys",
-    "cowboys": "Dallas Cowboys",
-    "boys": "Dallas Cowboys",
-    "the boys": "Dallas Cowboys",
-
-    "denver": "Denver Broncos",
-    "broncos": "Denver Broncos",
-
-    "detroit": "Detroit Lions",
-    "lions": "Detroit Lions",
-
-    "green bay": "Green Bay Packers",
-    "packers": "Green Bay Packers",
-
-    "houston": "Houston Texans",
-    "texans": "Houston Texans",
-
-    "indianapolis": "Indianapolis Colts",
-    "colts": "Indianapolis Colts",
-
-    "jacksonville": "Jacksonville Jaguars",
-    "jags": "Jacksonville Jaguars",
-    "jaguars": "Jacksonville Jaguars",
-
-    "kansas city": "Kansas City Chiefs",
-    "chiefs": "Kansas City Chiefs",
-
-    "las vegas": "Las Vegas Raiders",
-    "raiders": "Las Vegas Raiders",
-
-    "la chargers": "Los Angeles Chargers",
-    "chargers": "Los Angeles Chargers",
-
-    "la rams": "Los Angeles Rams",
-    "rams": "Los Angeles Rams",
-
-    "miami": "Miami Dolphins",
-    "dolphins": "Miami Dolphins",
-
-    "minnesota": "Minnesota Vikings",
-    "vikings": "Minnesota Vikings",
-
-    "new england": "New England Patriots",
-    "patriots": "New England Patriots",
-    "pats": "New England Patriots",
-
-    "new orleans": "New Orleans Saints",
-    "saints": "New Orleans Saints",
-
-    "ny giants": "New York Giants",
-    "giants": "New York Giants",
-
-    "ny jets": "New York Jets",
-    "jets": "New York Jets",
-
-    "philadelphia": "Philadelphia Eagles",
-    "eagles": "Philadelphia Eagles",
-
-    "pittsburgh": "Pittsburgh Steelers",
-    "steelers": "Pittsburgh Steelers",
-
-    "san francisco": "San Francisco 49ers",
-    "49ers": "San Francisco 49ers",
-    "niners": "San Francisco 49ers",
-
-    "seattle": "Seattle Seahawks",
-    "seahawks": "Seattle Seahawks",
-
-    "tampa bay": "Tampa Bay Buccaneers",
-    "buccaneers": "Tampa Bay Buccaneers",
-    "bucs": "Tampa Bay Buccaneers",
-
-    "tennessee": "Tennessee Titans",
-    "titans": "Tennessee Titans",
-
-    "washington": "Washington Commanders",
-    "commanders": "Washington Commanders"
-};
-
-let players = JSON.parse(localStorage.getItem("kirbyPlayers")) || [
-    {
-        name: "Mark Roma",
-        phone: "",
-        picks: ["Dallas Cowboys", "Tennessee Titans"],
-        history: [],
-        status: "2 PICKS"
-    },
-    {
-        name: "Cathy/Amanda",
-        phone: "",
-        picks: ["Jacksonville Jaguars", "Detroit Lions"],
-        history: [],
-        status: "2 PICKS"
-    },
-    {
-        name: "Sean",
-        phone: "",
-        picks: ["San Francisco 49ers", "Houston Texans"],
-        history: [],
-        status: "2 PICKS"
-    },
-    {
-        name: "Mark B",
-        phone: "",
-        picks: ["Dallas Cowboys", "Miami Dolphins"],
-        history: [],
-        status: "2 PICKS"
-    },
-    {
-        name: "Barb",
-        phone: "",
-        picks: ["Detroit Lions", "Kansas City Chiefs"],
-        history: [],
-        status: "2 PICKS"
-    },
-    {
-        name: "Sonny",
-        phone: "",
-        picks: ["Dallas Cowboys", "Cincinnati Bengals"],
-        history: [],
-        status: "2 PICKS"
-    },
-    {
-        name: "John Snell",
-        phone: "",
-        picks: ["Houston Texans", "Dallas Cowboys"],
-        history: [],
-        status: "2 PICKS"
-    },
-    {
-        name: "Kirk",
-        phone: "",
-        picks: ["Jacksonville Jaguars", "Dallas Cowboys"],
-        history: [],
-        status: "2 PICKS"
-    }
+const starter=[
+ {id:"mark-roma",name:"Mark Roma",phone:"",status:"ACTIVE",payment:"NOT PAID",paidDate:"",used:[],pick1:"Texans",pick2:"Titans",result1:"",result2:""},
+ {id:"cathy-amanda",name:"Cathy/Amanda",phone:"",status:"ACTIVE",payment:"NOT PAID",paidDate:"",used:[],pick1:"Jaguars",pick2:"Lions",result1:"",result2:""},
+ {id:"sean",name:"Sean",phone:"",status:"ACTIVE",payment:"NOT PAID",paidDate:"",used:[],pick1:"49ers",pick2:"Lions",result1:"",result2:""},
+ {id:"mark-b",name:"Mark B",phone:"",status:"ACTIVE",payment:"NOT PAID",paidDate:"",used:[],pick1:"Cowboys",pick2:"Dolphins",result1:"",result2:""},
+ {id:"barb",name:"Barb",phone:"",status:"ACTIVE",payment:"NOT PAID",paidDate:"",used:[],pick1:"Lions",pick2:"Chiefs",result1:"",result2:""},
+ {id:"sonny",name:"Sonny",phone:"",status:"OUT",payment:"NOT PAID",paidDate:"",used:[],pick1:"Cowboys",pick2:"Lions",result1:"LOSS",result2:"LOSS"}
 ];
 
-let results = JSON.parse(localStorage.getItem("kirbyResults")) || {};
+let players=JSON.parse(localStorage.getItem("kirbyPoolCorrect")||"null")||starter;
+let current=null;
 
-function saveData() {
-    localStorage.setItem("kirbyPlayers", JSON.stringify(players));
-    localStorage.setItem("kirbyResults", JSON.stringify(results));
+const $=id=>document.getElementById(id);
+
+function save(){localStorage.setItem("kirbyPoolCorrect",JSON.stringify(players))}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+
+function sundayLocked(){
+  const d=new Date();
+  if(d.getDay()!==0)return false;
+  const lock=new Date(d);
+  lock.setHours(13,0,0,0);
+  return d>=lock;
 }
 
-function populateTeams() {
+/* Main sheet: exactly two stacked pick cells beside each name. */
+function renderMain(){
+  const body=$("poolBody");
+  body.innerHTML="";
 
-    const pick1 = document.getElementById("pick1");
-    const pick2 = document.getElementById("pick2");
-    const resultTeam = document.getElementById("resultTeam");
+  players.forEach(p=>{
+    if(p.status==="DROPPED")return;
 
-    teams.forEach(team => {
+    const showPicks=sundayLocked();
+    const c1=p.result1==="WIN"?"win":p.result1==="LOSS"?"loss":"pending";
+    const c2=p.result2==="WIN"?"win":p.result2==="LOSS"?"loss":"pending";
 
-        let o1 = document.createElement("option");
-        o1.value = team;
-        o1.textContent = team;
-        pick1.appendChild(o1);
+    const tr=document.createElement("tr");
+    tr.innerHTML=
+      `<td class="name ${p.status==="OUT"?"out":""}" rowspan="2">${esc(p.name)}</td>
+       <td class="x" rowspan="2">${p.status==="ACTIVE"?"x":""}</td>
+       <td class="team"><div class="teambox ${showPicks?c1:"hiddenpick"}">${showPicks?esc(p.pick1||""):""}</div></td></tr>
+       <tr>
+       <td class="team"><div class="teambox ${showPicks?c2:"hiddenpick"}">${showPicks?esc(p.pick2||""):""}</div></td>
+       </tr>`;
 
-        let o2 = document.createElement("option");
-        o2.value = team;
-        o2.textContent = team;
-        pick2.appendChild(o2);
-
-        let o3 = document.createElement("option");
-        o3.value = team;
-        o3.textContent = team;
-        resultTeam.appendChild(o3);
-    });
+    body.appendChild(tr);
+  });
 }
 
-function populatePlayers() {
+function fillTeamSelect(select,p,value){
+  select.innerHTML="<option value=''>SELECT TEAM</option>";
+  const already=p.used||[];
 
-    const select = document.getElementById("playerSelect");
-
-    while (select.options.length > 1) {
-        select.remove(1);
-    }
-
-    players.forEach((player, index) => {
-
-        const option = document.createElement("option");
-
-        option.value = index;
-        option.textContent = player.name;
-
-        select.appendChild(option);
-    });
+  TEAMS.forEach(team=>{
+    const o=document.createElement("option");
+    o.value=team;
+    o.textContent=(already.includes(team)&&team!==value)?"USED — "+team:team;
+    o.disabled=already.includes(team)&&team!==value;
+    if(team===value)o.selected=true;
+    select.appendChild(o);
+  });
 }
 
-function getStatus(player) {
-
-    if (!player.picks || player.picks.length === 0) {
-        return "OUT";
-    }
-
-    let losses = 0;
-    let active = 0;
-
-    player.picks.forEach(team => {
-
-        if (results[team] === "loss") {
-            losses++;
-        }
-
-        if (!results[team]) {
-            active++;
-        }
-    });
-
-    if (losses >= 2) {
-        return "OUT";
-    }
-
-    if (losses === 1) {
-        return "1 PICK";
-    }
-
-    return "2 PICKS";
+function statusFor(p){
+  if(p.status==="OUT"||p.status==="DROPPED")return p.status;
+  if(p.result1==="LOSS"&&p.result2==="LOSS")return "OUT";
+  if(p.result1==="LOSS"||p.result2==="LOSS")return "1 PICK";
+  return "2 PICKS";
 }
 
-function renderPool() {
+function loadPlayer(){
+  const id=new URLSearchParams(location.search).get("player");
+  current=players.find(p=>p.id===id)||null;
 
-    const body = document.getElementById("poolBody");
+  if(!current){
+    $("entryControls").classList.add("hidden");
+    return;
+  }
 
-    body.innerHTML = "";
+  $("playerTitle").innerHTML="<b>PLAYER: "+esc(current.name.toUpperCase())+"</b>";
+  $("playerMessage").textContent="Choose your two teams. Other players cannot see your picks before Sunday at 1:00 PM.";
+  $("entryControls").classList.remove("hidden");
 
-    let two = 0;
-    let one = 0;
-    let out = 0;
+  fillTeamSelect($("pick1"),current,current.pick1||"");
+  fillTeamSelect($("pick2"),current,current.pick2||"");
 
-    players.forEach((player, index) => {
+  $("myStatus").textContent=statusFor(current);
 
-        const status = getStatus(player);
+  const u=current.used||[];
+  $("usedTeams").innerHTML=u.length
+    ?u.map(t=>"<span>"+esc(t)+"</span>").join("")
+    :"None yet";
 
-        if (status === "2 PICKS") two++;
-        if (status === "1 PICK") one++;
-        if (status === "OUT") out++;
-
-        const row = document.createElement("tr");
-
-        const nameCell = document.createElement("td");
-        nameCell.className = "player";
-
-        if (status === "OUT") {
-            nameCell.classList.add("player-out");
-        }
-
-        nameCell.textContent = player.name;
-
-        const pick1 = document.createElement("td");
-        pick1.className = "pick";
-        pick1.textContent = player.picks[0] || "";
-
-        const pick2 = document.createElement("td");
-        pick2.className = "pick";
-        pick2.textContent = player.picks[1] || "";
-
-        colorPick(pick1, player.picks[0]);
-        colorPick(pick2, player.picks[1]);
-
-        const statusCell = document.createElement("td");
-        statusCell.textContent = status;
-
-        if (status === "2 PICKS") {
-            statusCell.className = "status status-two";
-        } else if (status === "1 PICK") {
-            statusCell.className = "status status-one";
-        } else {
-            statusCell.className = "status status-out";
-        }
-
-        row.appendChild(nameCell);
-        row.appendChild(pick1);
-        row.appendChild(pick2);
-        row.appendChild(statusCell);
-
-        body.appendChild(row);
-    });
-
-    document.getElementById("twoCount").textContent = two;
-    document.getElementById("oneCount").textContent = one;
-    document.getElementById("outCount").textContent = out;
-
-    renderAdmin();
+  if(sundayLocked()){
+    $("submitBtn").disabled=true;
+    $("submitBtn").textContent="PICKS LOCKED";
+  }
 }
 
-function colorPick(cell, team) {
+$("pick1").addEventListener("change",()=>{
+  const v=$("pick1").value;
+  [...$("pick2").options].forEach(o=>{
+    if(o.value===v)o.disabled=true;
+  });
+});
 
-    if (!team) return;
+$("pick2").addEventListener("change",()=>{
+  const v=$("pick2").value;
+  [...$("pick1").options].forEach(o=>{
+    if(o.value===v)o.disabled=true;
+  });
+});
 
-    if (results[team] === "win") {
-        cell.classList.add("winner");
-    } else if (results[team] === "loss") {
-        cell.classList.add("loser");
-    } else {
-        cell.classList.add("pending");
-    }
+$("submitBtn").addEventListener("click",()=>{
+  if(!current||sundayLocked())return;
+
+  const a=$("pick1").value;
+  const b=$("pick2").value;
+  const u=current.used||[];
+
+  if(!a||!b){
+    $("entryMsg").className="msg bad";
+    $("entryMsg").textContent="Please select both teams.";
+    return;
+  }
+
+  if(a===b){
+    $("entryMsg").className="msg bad";
+    $("entryMsg").textContent="You cannot use the same team twice.";
+    return;
+  }
+
+  if(u.includes(a)||u.includes(b)){
+    $("entryMsg").className="msg bad";
+    $("entryMsg").textContent="A team already used by you cannot be picked again.";
+    return;
+  }
+
+  current.pick1=a;
+  current.pick2=b;
+  if(current.status==="PENDING")current.status="ACTIVE";
+
+  save();
+  renderMain();
+  loadPlayer();
+
+  $("entryMsg").className="msg good";
+  $("entryMsg").textContent="Picks saved.";
+});
+
+$("adminBtn").addEventListener("click",()=>{
+  const admin=$("admin");
+
+  if(!admin.classList.contains("hidden")){
+    admin.classList.add("hidden");
+    return;
+  }
+
+  const pin=prompt("Admin PIN:");
+  if(pin!==ADMIN_PIN){
+    if(pin!==null)alert("Incorrect PIN.");
+    return;
+  }
+
+  admin.classList.remove("hidden");
+  renderAdmin();
+});
+
+$("addPlayer").addEventListener("click",()=>{
+  const name=$("newName").value.trim();
+  const phone=$("newPhone").value.trim();
+
+  if(!name){
+    alert("Enter a player name.");
+    return;
+  }
+
+  const base=name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"player";
+  let id=base;
+  let n=2;
+  while(players.some(p=>p.id===id))id=base+"-"+n++;
+
+  players.push({
+    id,name,phone,status:"PENDING",payment:"NOT PAID",paidDate:"",
+    used:[],pick1:"",pick2:"",result1:"",result2:""
+  });
+
+  save();
+  $("newName").value="";
+  $("newPhone").value="";
+  renderMain();
+  renderAdmin();
+
+  $("adminMsg").className="msg good";
+  $("adminMsg").textContent="Player added. Use INVITE to text their personal link.";
+});
+
+function renderAdmin(){
+  const body=$("adminBody");
+  body.innerHTML="";
+
+  players.forEach((p,i)=>{
+    if(!p.id)p.id="player-"+i;
+
+    const link=location.origin+location.pathname+"?player="+encodeURIComponent(p.id);
+    const inviteText=encodeURIComponent("Kirby's Knockout Pool invite: "+link);
+
+    const tr=document.createElement("tr");
+    tr.innerHTML=
+      `<td>${esc(p.name)}</td>
+       <td>${esc(p.phone)}</td>
+       <td>
+        <select data-i="${i}" data-field="status">
+         <option ${p.status==="PENDING"?"selected":""}>PENDING</option>
+         <option ${p.status==="ACTIVE"?"selected":""}>ACTIVE</option>
+         <option ${p.status==="OUT"?"selected":""}>OUT</option>
+         <option ${p.status==="DROPPED"?"selected":""}>DROPPED</option>
+        </select>
+       </td>
+       <td>
+        <select data-i="${i}" data-field="payment">
+         <option ${p.payment==="NOT PAID"?"selected":""}>NOT PAID</option>
+         <option ${p.payment==="VENMO"?"selected":""}>VENMO</option>
+         <option ${p.payment==="CASH"?"selected":""}>CASH</option>
+        </select>
+       </td>
+       <td>${esc(p.paidDate)}</td>
+       <td class="link">
+         ${esc(link)}<br>
+         <button class="small copy" data-link="${esc(link)}">COPY LINK</button>
+         <button class="small invite" data-phone="${esc(p.phone)}" data-text="${inviteText}">INVITE</button>
+       </td>
+       <td>${esc(p.pick1||"")} / ${esc(p.pick2||"")}</td>
+       <td><button class="small drop" data-i="${i}">DROP</button></td>`;
+
+    body.appendChild(tr);
+  });
 }
 
-function submitPicks() {
+$("adminBody").addEventListener("change",e=>{
+  const i=e.target.dataset.i;
+  const field=e.target.dataset.field;
+  if(i===undefined||!field)return;
 
-    const index = document.getElementById("playerSelect").value;
-    const pick1 = document.getElementById("pick1").value;
-    const pick2 = document.getElementById("pick2").value;
+  players[+i][field]=e.target.value;
 
-    if (index === "") {
-        showMessage("Please select your name.", true);
-        return;
+  if(field==="payment"&&(players[+i].payment==="VENMO"||players[+i].payment==="CASH"))
+    players[+i].paidDate=new Date().toLocaleDateString();
+
+  save();
+  renderMain();
+  renderAdmin();
+});
+
+$("adminBody").addEventListener("click",e=>{
+  if(e.target.classList.contains("copy")){
+    navigator.clipboard?.writeText(e.target.dataset.link);
+    e.target.textContent="COPIED";
+    setTimeout(()=>e.target.textContent="COPY LINK",1000);
+  }
+
+  if(e.target.classList.contains("invite")){
+    const phone=e.target.dataset.phone||"";
+    location.href="sms:"+phone+"?body="+e.target.dataset.text;
+  }
+
+  if(e.target.classList.contains("drop")){
+    const i=+e.target.dataset.i;
+    if(confirm("Mark "+players[i].name+" as DROPPED? Their record will be kept.")){
+      players[i].status="DROPPED";
+      save();
+      renderMain();
+      renderAdmin();
     }
-
-    if (!pick1) {
-        showMessage("Please select Pick 1.", true);
-        return;
-    }
-
-    const player = players[index];
-
-    if (pick2 && pick1 === pick2) {
-        showMessage("You cannot use the same team for both picks.", true);
-        return;
-    }
-
-    const used = player.history || [];
-
-    if (used.includes(pick1)) {
-        showMessage("You have already used " + pick1 + " this season.", true);
-        return;
-    }
-
-    if (pick2 && used.includes(pick2)) {
-        showMessage("You have already used " + pick2 + " this season.", true);
-        return;
-    }
-
-    player.picks = [pick1];
-
-    if (pick2) {
-        player.picks.push(pick2);
-    }
-
-    saveData();
-    renderPool();
-    updateMyStatus();
-
-    showMessage("Your picks have been saved!", false);
-}
-
-function updateMyStatus() {
-
-    const index = document.getElementById("playerSelect").value;
-
-    if (index === "") {
-        document.getElementById("myStatus").textContent =
-            "Select your name above.";
-
-        document.getElementById("usedTeams").textContent =
-            "Select your name above.";
-
-        return;
-    }
-
-    const player = players[index];
-
-    document.getElementById("myStatus").textContent =
-        getStatus(player);
-
-    const used = player.history || [];
-
-    if (used.length === 0) {
-        document.getElementById("usedTeams").textContent =
-            "None yet";
-    } else {
-        document.getElementById("usedTeams").textContent =
-            used.join(", ");
-    }
-
-    if (player.picks) {
-        document.getElementById("pick1").value =
-            player.picks[0] || "";
-
-        document.getElementById("pick2").value =
-            player.picks[1] || "";
-    }
-}
-
-function addPlayer() {
-
-    const name = document.getElementById("newPlayerName").value.trim();
-    const phone = document.getElementById("newPlayerPhone").value.trim();
-
-    if (!name) {
-        alert("Enter a player name.");
-        return;
-    }
-
-    players.push({
-        name: name,
-        phone: phone,
-        picks: [],
-        history: [],
-        status: "2 PICKS"
-    });
-
-    saveData();
-    populatePlayers();
-    renderPool();
-
-    document.getElementById("newPlayerName").value = "";
-    document.getElementById("newPlayerPhone").value = "";
-
-    alert(name + " has been added.");
-}
-
-function setResult() {
-
-    const team = document.getElementById("resultTeam").value;
-    const value = document.getElementById("resultValue").value;
-
-    if (!team || !value) {
-        alert("Select a team and result.");
-        return;
-    }
-
-    results[team] = value;
-
-    if (value === "win") {
-
-        players.forEach(player => {
-
-            if (player.picks.includes(team)) {
-
-                if (!player.history.includes(team)) {
-                    player.history.push(team);
-                }
-            }
-        });
-    }
-
-    if (value === "loss") {
-
-        players.forEach(player => {
-
-            if (player.picks.includes(team)) {
-
-                if (!player.history.includes(team)) {
-                    player.history.push(team);
-                }
-            }
-        });
-    }
-
-    saveData();
-    renderPool();
-    updateMyStatus();
-
-    alert(team + " marked as " + value.toUpperCase() + ".");
-}
-
-function clearResults() {
-
-    if (!confirm("Clear all game results?")) {
-        return;
-    }
-
-    results = {};
-
-    saveData();
-    renderPool();
-    updateMyStatus();
-}
-
-function renderAdmin() {
-
-    const body = document.getElementById("adminBody");
-
-    body.innerHTML = "";
-
-    players.forEach(player => {
-
-        const row = document.createElement("tr");
-
-        const name = document.createElement("td");
-        name.textContent = player.name;
-
-        const phone = document.createElement("td");
-        phone.textContent = player.phone || "";
-
-        const p1 = document.createElement("td");
-        p1.textContent = player.picks[0] || "";
-
-        const p2 = document.createElement("td");
-        p2.textContent = player.picks[1] || "";
-
-        const status = document.createElement("td");
-        status.textContent = getStatus(player);
-
-        row.appendChild(name);
-        row.appendChild(phone);
-        row.appendChild(p1);
-        row.appendChild(p2);
-        row.appendChild(status);
-
-        body.appendChild(row);
-    });
-}
-
-function openAdmin() {
-
-    const pin = prompt("Enter organizer PIN:");
-
-    if (pin === "1978") {
-        document.getElementById("adminPanel").classList.toggle("show");
-    } else {
-        alert("Incorrect PIN.");
-    }
-}
-
-function showMessage(text, bad) {
-
-    const box = document.getElementById("message");
-
-    box.textContent = text;
-    box.className = "message show " + (bad ? "bad" : "good");
-
-    setTimeout(() => {
-        box.classList.remove("show");
-    }, 4000);
-}
-
-document.getElementById("playerSelect")
-    .addEventListener("change", updateMyStatus);
-
-populateTeams();
-populatePlayers();
-renderPool();
-
+  }
+});
+
+renderMain();
+loadPlayer();
 </script>
-
 </body>
 </html>
