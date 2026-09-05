@@ -179,25 +179,104 @@ function renderMain(){
   players.forEach(p=>{
     if(p.status==="DROPPED")return;
 
-    const showPicks=sundayLocked();
-    const c1=p.result1==="WIN"?"win":p.result1==="LOSS"?"loss":"pending";
-    const c2=p.result2==="WIN"?"win":p.result2==="LOSS"?"loss":"pending";
-
     const row1=document.createElement("tr");
-    row1.innerHTML=
-      `<td class="name ${p.status==="OUT"?"out":""}" rowspan="2">${esc(p.name)}</td>
-       <td class="x" rowspan="2">${p.status==="ACTIVE"?"x":""}</td>
-       <td class="team"><div class="teambox ${showPicks?c1:"hiddenpick"}">${showPicks?esc(p.pick1||""):""}</div></td>`;
-
     const row2=document.createElement("tr");
-    row2.innerHTML=
-      `<td class="team"><div class="teambox ${showPicks?c2:"hiddenpick"}">${showPicks?esc(p.pick2||""):""}</div></td>`;
+
+    const nameCell=document.createElement("td");
+    nameCell.className="name "+(p.status==="OUT"?"out":"");
+    nameCell.rowSpan=2;
+    nameCell.textContent=p.name;
+
+    const xCell=document.createElement("td");
+    xCell.className="x";
+    xCell.rowSpan=2;
+    xCell.textContent=p.status==="ACTIVE"?"x":"";
+
+    const pick1Cell=document.createElement("td");
+    pick1Cell.className="team";
+
+    const pick2Cell=document.createElement("td");
+    pick2Cell.className="team";
+
+    const pick1=document.createElement("select");
+    const pick2=document.createElement("select");
+
+    pick1.style.width="100%";
+    pick2.style.width="100%";
+    pick1.style.height="29px";
+    pick2.style.height="29px";
+    pick1.style.border="0";
+    pick2.style.border="0";
+    pick1.style.borderRadius="0";
+    pick2.style.borderRadius="0";
+    pick1.style.background="#fff";
+    pick2.style.background="#fff";
+
+    fillTeamSelect(pick1,p,p.pick1||"");
+    fillTeamSelect(pick2,p,p.pick2||"");
+
+    const isMyPlayer=current&&current.id===p.id;
+    const locked=sundayLocked();
+
+    pick1.disabled=locked||!isMyPlayer;
+    pick2.disabled=locked||!isMyPlayer;
+
+    if(locked){
+      pick1.value=p.pick1||"";
+      pick2.value=p.pick2||"";
+    }
+
+    function syncMainPicks(){
+      [...pick1.options].forEach(o=>{
+        o.disabled=(p.used||[]).includes(o.value)&&o.value!==pick1.value;
+      });
+
+      [...pick2.options].forEach(o=>{
+        o.disabled=(p.used||[]).includes(o.value)&&o.value!==pick2.value;
+      });
+
+      if(pick1.value){
+        [...pick2.options].forEach(o=>{
+          if(o.value===pick1.value)o.disabled=true;
+        });
+      }
+
+      if(pick2.value){
+        [...pick1.options].forEach(o=>{
+          if(o.value===pick2.value)o.disabled=true;
+        });
+      }
+    }
+
+    pick1.addEventListener("change",()=>{
+      p.pick1=pick1.value;
+      save();
+      syncMainPicks();
+      loadPlayer();
+    });
+
+    pick2.addEventListener("change",()=>{
+      p.pick2=pick2.value;
+      save();
+      syncMainPicks();
+      loadPlayer();
+    });
+
+    syncMainPicks();
+
+    pick1Cell.appendChild(pick1);
+    pick2Cell.appendChild(pick2);
+
+    row1.appendChild(nameCell);
+    row1.appendChild(xCell);
+    row1.appendChild(pick1Cell);
+
+    row2.appendChild(pick2Cell);
 
     body.appendChild(row1);
     body.appendChild(row2);
   });
 }
-
 function fillTeamSelect(select,p,value){
   select.innerHTML="<option value=''>SELECT TEAM</option>";
   const already=p.used||[];
