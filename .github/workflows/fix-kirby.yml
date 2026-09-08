@@ -1,0 +1,55 @@
+name: Fix Kirby Pool
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  fix:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Apply small fixes
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          old_button = '<button id="seedBtn" class="primary">LOAD DEMO PLAYERS</button>'
+          s = s.replace(old_button, '')
+
+          old_load = 'async function loadPublic(){players=await rpc("get_leaderboard",{})||[]}'
+          new_load = '''async function loadPublic(){players=await rpc("get_leaderboard",{})||[];const rowWithLock=players.find(p=>p&&Object.prototype.hasOwnProperty.call(p,"lock_time"));if(rowWithLock){lockTime=rowWithLock.lock_time||null;try{localStorage.setItem("knockoutLockTime",lockTime||"")}catch(e){}}else{try{const saved=localStorage.getItem("knockoutLockTime");if(saved)lockTime=saved}catch(e){}}}'''
+          if old_load not in s:
+              raise SystemExit('Expected loadPublic code was not found; no changes made.')
+          s = s.replace(old_load, new_load, 1)
+
+          marker = '</script>'
+          persistence = '''
+(function(){const b=document.getElementById("lockToggleBtn");if(b)b.addEventListener("click",()=>setTimeout(()=>{try{localStorage.setItem("knockoutLockTime",lockTime||"")}catch(e){}},700))})();
+'''
+          idx = s.rfind(marker)
+          if idx < 0:
+              raise SystemExit('Expected closing script tag was not found; no changes made.')
+          s = s[:idx] + persistence + s[idx:]
+
+          p.write_text(s, encoding='utf-8')
+
+      - name: Commit and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git rm .github/workflows/fix-kirby.yml
+          git commit -m "Fix lock persistence and remove demo loader"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
