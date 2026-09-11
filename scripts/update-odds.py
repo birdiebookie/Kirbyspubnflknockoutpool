@@ -25,13 +25,24 @@ TEAM_NAMES = {
     "SEA": "Seahawks", "TB": "Buccaneers", "TEN": "Titans", "WSH": "Commanders",
 }
 
+# Look far enough ahead to catch next week's Thursday lines after the current
+# week ends, but use ESPN's week number so we never mix two weeks together.
 start = NOW.strftime("%Y%m%d")
-end = (NOW + timedelta(days=6)).strftime("%Y%m%d")
+end = (NOW + timedelta(days=13)).strftime("%Y%m%d")
 url = f"https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates={start}-{end}&limit=100"
 req = Request(url, headers={"User-Agent": "KirbysKnockoutPool/1.0"})
 
 with urlopen(req, timeout=30) as response:
     data = json.load(response)
+
+events = data.get("events", [])
+week_numbers = [
+    (event.get("week") or {}).get("number")
+    for event in events
+    if (event.get("week") or {}).get("number") is not None
+]
+target_week = min(week_numbers) if week_numbers else None
+print(f"Using ESPN NFL week {target_week}.")
 
 spreads = {}
 
@@ -45,7 +56,6 @@ def clean_spread(value):
     n = to_number(value)
     if n is None:
         return None
-    # ESPN may occasionally return a numeric zero for a pick'em line.
     if abs(n) < 0.0001:
         return 0
     return round(n, 1)
@@ -64,7 +74,11 @@ def parse_details(details, away_abbr, home_abbr):
         return None
     return (abbr, n)
 
-for event in data.get("events", []):
+for event in events:
+    event_week = (event.get("week") or {}).get("number")
+    if target_week is not None and event_week != target_week:
+        continue
+
     for competition in event.get("competitions", []):
         competitors = competition.get("competitors", [])
         by_side = {c.get("homeAway"): c for c in competitors}
@@ -85,22 +99,17 @@ for event in data.get("events", []):
         if not odds:
             continue
 
-        home_spread = None
-        away_spread = None
         home_odds = odds.get("homeTeamOdds") or {}
         away_odds = odds.get("awayTeamOdds") or {}
-
         home_spread = clean_spread(home_odds.get("spread"))
         away_spread = clean_spread(away_odds.get("spread"))
 
-        # Some ESPN responses expose one competition-level spread instead.
         if home_spread is None and away_spread is None:
             game_spread = clean_spread(odds.get("spread"))
             if game_spread is not None:
                 home_spread = game_spread
                 away_spread = -game_spread
 
-        # Final fallback: parse details such as "LAR -3.5".
         if home_spread is None and away_spread is None:
             parsed = parse_details(odds.get("details"), away_abbr, home_abbr)
             if parsed:
@@ -122,6 +131,7 @@ output = {
     "updated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     "updated_et": NOW.strftime("%B %-d, %Y at %-I:%M %p ET"),
     "source": "ESPN",
+    "week": target_week,
     "spreads": dict(sorted(spreads.items())),
 }
 
