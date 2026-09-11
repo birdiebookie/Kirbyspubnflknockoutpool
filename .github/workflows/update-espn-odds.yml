@@ -1,0 +1,34 @@
+name: Update ESPN NFL Odds
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub cron is UTC. These two runs cover 9:00 AM Eastern in both
+    # daylight-saving and standard time; the script only updates at 9 AM ET.
+    - cron: "0 13 * * *"
+    - cron: "0 14 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update-odds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Update odds from ESPN
+        run: python scripts/update-odds.py
+
+      - name: Commit updated odds
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- odds.json; then
+            echo "No odds changes to commit."
+            exit 0
+          fi
+          git add odds.json
+          git commit -m "Update ESPN NFL odds"
+          git push
