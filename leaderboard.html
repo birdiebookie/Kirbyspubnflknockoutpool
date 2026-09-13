@@ -3,5 +3,57 @@
 *{box-sizing:border-box}body{margin:0;background:#fff;color:#000;font-family:Calibri,Arial,sans-serif;font-size:15px}.wrap{width:min(950px,96%);margin:18px auto 40px}h1{font-size:27px;margin:0}.sub{font-size:13px;font-weight:700;margin:2px 0 12px}.notice{font-size:13px;font-weight:700;background:#fff200;border:1px solid #111;padding:7px 9px;margin-bottom:10px}.top{display:flex;gap:8px;margin-bottom:12px}.back{display:inline-block;border:1px solid #666;background:#eee;color:#000;text-decoration:none;font-weight:700;padding:8px 12px}.sheet{width:100%;border-collapse:collapse;table-layout:fixed}.sheet th,.sheet td{border:1px solid #777;padding:0;text-align:left;font-weight:700}.sheet th{background:#eee;padding:7px 8px}.sheet .player{width:38%}.sheet .week{width:42%}.sheet .status{width:20%;text-align:center}.pickslot{min-height:38px;padding:7px 8px;border-bottom:1px solid #777;background:#fff;text-align:center}.pickslot:last-child{border-bottom:0}.win{background:#fff200!important}.loss{background:#f00!important}.out{background:#f00!important}.pending{background:#fff!important}.legend{margin-top:12px;font-weight:700}.legend span{display:inline-block;padding:4px 9px;border:1px solid #777;margin-right:6px}.yellow{background:#fff200}.red{background:#f00}.white{background:#fff}.msg{font-weight:700;margin:10px 0}@media(max-width:650px){.sheet th,.sheet td{font-size:13px}.sheet th{padding:6px 5px}.pickslot{padding:6px 5px}.sheet .player{width:34%}.sheet .week{width:46%}.sheet .status{width:20%}}
 </style></head><body><div class="wrap"><h1>KIRBY'S KNOCKOUT POOL</h1><div class="sub">NFL 2026 • LEADERBOARD</div><div class="top"><a id="back" class="back" href="./">← BACK TO MY PICKS</a></div><div id="notice" class="notice">LOADING LEADERBOARD...</div><div id="msg" class="msg"></div><table class="sheet"><thead><tr><th class="player">PLAYER</th><th class="week">WEEK 1</th><th class="status">STATUS</th></tr></thead><tbody id="body"></tbody></table><div class="legend"><span class="yellow">WIN</span><span class="red">LOSS</span><span class="white">PENDING</span></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
-"use strict";const SUPABASE_URL="https://rkyupmpnsjjgditslpiz.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_hicUgD5WOhRlbPtwMzkaqQ_WktOF7qL",db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);const $=id=>document.getElementById(id);async function rpc(name,args){const{data,error}=await db.rpc(name,args);if(error)throw error;return data}function tokenFromUrl(){const q=new URLSearchParams(location.search);return q.get("token")||new URLSearchParams(location.hash.substring(1)).get("token")||""}function locked(lock){return lock?new Date(lock)<=new Date():true}function statusText(p){const n=Number(p.picks_remaining);if(String(p.status||"").toUpperCase()==="OUT"||n<=0)return"OUT";if(n===1)return"1 PICK";return"2 PICKS"}function makePick(team,result){const d=document.createElement("div");const r=String(result||"").trim().toUpperCase();d.className="pickslot pending";d.textContent=team||"Pending";if(r==="WIN"){d.className="pickslot win"}else if(r==="LOSS"){d.className="pickslot loss"}return d}async function load(){try{const rows=await rpc("get_leaderboard",{})||[];const reveal=locked(rows[0]?.lock_time);if(rows.length){$("notice").textContent=`WEEK ${rows[0].week_number||1} • PICKS AND RESULTS ARE LIVE`}else{$("notice").textContent="NO PLAYERS YET"}const b=$("body");b.innerHTML="";rows.filter(p=>String(p.status||"").toUpperCase()!=="DROPPED").forEach(p=>{const tr=document.createElement("tr");const n=document.createElement("td");n.textContent=p.name;const pc=document.createElement("td");const a=makePick(p.team1,p.team1_result),c=makePick(p.team2,p.team2_result);pc.append(a,c);const s=document.createElement("td");s.textContent=statusText(p);if(statusText(p)==="OUT")s.className="out";tr.append(n,pc,s);b.appendChild(tr)})}catch(e){$("notice").textContent="COULD NOT LOAD LEADERBOARD";$("msg").textContent=e.message||"Please try again."}}const token=tokenFromUrl();if(token)$("back").href="./?token="+encodeURIComponent(token);load();setInterval(load,30000);
+"use strict";
+const SUPABASE_URL="https://rkyupmpnsjjgditslpiz.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_hicUgD5WOhRlbPtwMzkaqQ_WktOF7qL",db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);const $=id=>document.getElementById(id);
+async function rpc(name,args){const{data,error}=await db.rpc(name,args);if(error)throw error;return data}
+function tokenFromUrl(){const q=new URLSearchParams(location.search);return q.get("token")||new URLSearchParams(location.hash.substring(1)).get("token")||""}
+function locked(lock){return lock?new Date(lock)<=new Date():true}
+function cleanTeam(s){return String(s||"").replace(/\s+[-+]\d+(?:\.\d+)?(?:\s*)$/,"").replace(/\s+/g," ").trim().toLowerCase()}
+function teamMatches(a,b){const x=cleanTeam(a),y=cleanTeam(b);if(!x||!y)return false;return x===y||x.endsWith(" "+y)||y.endsWith(" "+x)}
+async function fetchNFLResults(lockTime){
+  try{
+    const d=new Date(lockTime||Date.now());
+    if(isNaN(d))return {};
+    const start=new Date(d);start.setDate(start.getDate()-4);
+    const end=new Date(d);end.setDate(end.getDate()+2);
+    const fmt=x=>x.toISOString().slice(0,10).replaceAll("-","");
+    const url=`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${fmt(start)}-${fmt(end)}`;
+    const r=await fetch(url,{cache:"no-store"});
+    if(!r.ok)throw new Error("NFL score service unavailable");
+    const data=await r.json();const results={};
+    (data.events||[]).forEach(ev=>{
+      const comp=ev.competitions&&ev.competitions[0];if(!comp)return;
+      const status=ev.status&&ev.status.type;const final=!!(status&&(status.completed||status.state==="post"||String(status.name||"").toUpperCase().includes("FINAL")));
+      if(!final)return;
+      const teams=comp.competitors||[];if(teams.length<2)return;
+      const a=teams[0],b=teams[1];const sa=Number(a.score),sb=Number(b.score);if(!Number.isFinite(sa)||!Number.isFinite(sb)||sa===sb)return;
+      const winner=sa>sb?a:b,loser=sa>sb?b:a;
+      [winner,loser].forEach(t=>{
+        const names=[t.team?.displayName,t.team?.shortDisplayName,t.team?.name,t.team?.abbreviation].filter(Boolean);
+        names.forEach(n=>results[cleanTeam(n)]=t===winner?"WIN":"LOSS");
+      });
+    });
+    return results;
+  }catch(e){console.warn("NFL score lookup failed",e);return {}}}
+function resultForTeam(team,nflResults){const key=cleanTeam(team);if(!key)return "";if(nflResults[key])return nflResults[key];for(const k of Object.keys(nflResults)){if(teamMatches(key,k))return nflResults[k]}return ""}
+function makePick(team,result){const d=document.createElement("div");const r=String(result||"").trim().toUpperCase();d.className="pickslot pending";d.textContent=team||"Pending";if(r==="WIN")d.className="pickslot win";else if(r==="LOSS")d.className="pickslot loss";return d}
+async function load(){try{
+  const rows=await rpc("get_leaderboard",{})||[];const lock=rows[0]?.lock_time;const reveal=locked(lock);const nflResults=await fetchNFLResults(lock);
+  if(rows.length)$("notice").textContent=`WEEK ${rows[0].week_number||1} • PICKS AND RESULTS ARE LIVE`;else $("notice").textContent="NO PLAYERS YET";
+  const b=$("body");b.innerHTML="";let two=0,one=0,out=0;
+  rows.filter(p=>String(p.status||"").toUpperCase()!=="DROPPED").forEach(p=>{
+    const r1=resultForTeam(p.team1,nflResults)||String(p.team1_result||"").trim().toUpperCase();
+    const r2=resultForTeam(p.team2,nflResults)||String(p.team2_result||"").trim().toUpperCase();
+    const finished1=!!r1,finished2=!!r2;
+    const wins=(r1==="WIN"?1:0)+(r2==="WIN"?1:0),losses=(r1==="LOSS"?1:0)+(r2==="LOSS"?1:0);
+    if(finished1&&finished2){if(wins===2)two++;else if(wins===1)one++;else out++;}
+    else if(finished1||finished2){if(wins===1)one++;else if(losses===1)one++;}
+    const tr=document.createElement("tr");const n=document.createElement("td");n.textContent=p.name;const pc=document.createElement("td");pc.append(makePick(p.team1,r1),makePick(p.team2,r2));const s=document.createElement("td");
+    const dbStatus=String(p.status||"").toUpperCase();
+    if(finished1&&finished2)s.textContent=wins===0?"OUT":wins===1?"1 PICK":"2 PICKS";else s.textContent=dbStatus==="OUT"?"OUT":Number(p.picks_remaining)===1?"1 PICK":"2 PICKS";
+    if(s.textContent==="OUT")s.className="out";tr.append(n,pc,s);b.appendChild(tr);
+  });
+  if(nflResults&&Object.keys(nflResults).length){$("msg").textContent="NFL results updated automatically from completed games."}
+}catch(e){$("notice").textContent="COULD NOT LOAD LEADERBOARD";$("msg").textContent=e.message||"Please try again."}}
+const token=tokenFromUrl();if(token)$("back").href="./?token="+encodeURIComponent(token);load();setInterval(load,30000);
 </script></body></html>
