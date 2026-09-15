@@ -10,6 +10,7 @@
     "bears": "WIN",
     "bengals": "WIN",
     "bills": "WIN",
+    "broncos": "LOSS",
     "browns": "LOSS",
     "buccaneers": "LOSS",
     "buf": "WIN",
@@ -20,6 +21,7 @@
     "chargers": "LOSS",
     "chi": "WIN",
     "chicago bears": "WIN",
+    "chiefs": "WIN",
     "cin": "WIN",
     "cincinnati bengals": "WIN",
     "cle": "LOSS",
@@ -29,6 +31,8 @@
     "cowboys": "LOSS",
     "dal": "LOSS",
     "dallas cowboys": "LOSS",
+    "den": "LOSS",
+    "denver broncos": "LOSS",
     "det": "WIN",
     "detroit lions": "WIN",
     "dolphins": "LOSS",
@@ -45,6 +49,8 @@
     "jaguars": "WIN",
     "jax": "WIN",
     "jets": "WIN",
+    "kansas city chiefs": "WIN",
+    "kc": "WIN",
     "lac": "LOSS",
     "lar": "LOSS",
     "las vegas raiders": "WIN",
@@ -91,5 +97,5 @@
     "washington commanders": "LOSS",
     "wsh": "LOSS"
   },
-  "updated_at": "2026-09-15T00:32:11.309630+00:00"
+  "updated_at": "2026-09-15T05:16:42.829277+00:00"
 }
