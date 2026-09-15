@@ -15,14 +15,13 @@ async function fetchLiveNFLResults(){
   const now=new Date(),from=new Date(now.getTime()-35*86400000),to=new Date(now.getTime()+1*86400000),fmt=d=>d.toISOString().slice(0,10).replaceAll("-","");
   const url=`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${fmt(from)}-${fmt(to)}&limit=1000`;
   const r=await fetch(url,{cache:"no-store"});if(!r.ok)throw Error("ESPN HTTP "+r.status);const data=await r.json();
-  for(const ev of (data.events||[])){
+  for(const ev of(data.events||[])){
    const st=ev.status?.type||{};if(!(st.completed||st.state==="post"||String(st.name||"").toUpperCase().includes("FINAL")))continue;
    const teams=ev.competitions?.[0]?.competitors||[];if(teams.length<2)continue;
    const a=teams[0],b=teams[1],sa=Number(a.score),sb=Number(b.score);if(!Number.isFinite(sa)||!Number.isFinite(sb)||sa===sb)continue;
    const wk=Number(ev.week?.number||ev.competitions?.[0]?.week?.number||0);if(!wk)continue;
    if(!byWeek[wk])byWeek[wk]={};
-   const winner=sa>sb?a:b,loser=sa>sb?b:a;
-   const wx=winner.team||{},lx=loser.team||{};
+   const winner=sa>sb?a:b,loser=sa>sb?b:a,wx=winner.team||{},lx=loser.team||{};
    [wx.displayName,wx.shortDisplayName,wx.name,wx.abbreviation].forEach(n=>addResult(byWeek[wk],n,"WIN"));
    [lx.displayName,lx.shortDisplayName,lx.name,lx.abbreviation].forEach(n=>addResult(byWeek[wk],n,"LOSS"));
   }
@@ -31,35 +30,28 @@ async function fetchLiveNFLResults(){
 }
 async function fetchStoredResults(){try{const r=await fetch("./nfl-results.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error();return(await r.json()).results||{}}catch(e){return{}}}
 function resultForTeam(team,results){const k=cleanTeam(team);if(!k)return"";if(results[k])return results[k];for(const x of Object.keys(results)){const y=cleanTeam(x);if(k===y||k.endsWith(" "+y)||y.endsWith(" "+k))return results[x]}return""}
+function key(name){return String(name||"").trim().toLowerCase()}
 function makePick(team,result){const d=document.createElement("div"),r=String(result||"").trim().toUpperCase();d.className="pickslot pending";d.textContent=team||"Pending";if(r==="WIN")d.className="pickslot win";else if(r==="LOSS")d.className="pickslot loss";return d}
-function makeWeekBox(week,rows,results,isCurrent,storedResults){
+function makeWeekBox(week,rows,allPlayers,weekResults,storedResults,isCurrent){
+ const byName=new Map(rows.map(p=>[key(p.name),p]));
  const box=document.createElement("div");box.className="weekBox";
- const title=document.createElement("div");title.className="weekTitle"+(isCurrent?" current":"");title.textContent=isCurrent?`WEEK ${week} • PICKS • UPDATED AUTOMATICALLY`:`WEEK ${week} • RESULTS`;
- box.appendChild(title);
- const table=document.createElement("table");table.className="sheet";table.innerHTML='<thead><tr><th class="player">PLAYER</th><th class="week">WEEK '+week+(isCurrent?' — PICKS':' — RESULTS')+'</th><th class="status">STATUS</th></tr></thead>';
+ const title=document.createElement("div");title.className="weekTitle"+(isCurrent?" current":"");title.textContent=isCurrent?`WEEK ${week} • PICKS • UPDATED AUTOMATICALLY`:`WEEK ${week} • RESULTS`;box.appendChild(title);
+ const table=document.createElement("table");table.className="sheet";table.innerHTML=`<thead><tr><th class="player">PLAYER</th><th class="week">WEEK ${week} ${isCurrent?"— PICKS":"— RESULTS"}</th><th class="status">STATUS</th></tr></thead>`;
  const body=document.createElement("tbody");
- rows.filter(p=>String(p.status||"").toUpperCase()!=="DROPPED").forEach(p=>{
-   const team1=p.team1||"",team2=p.team2||"";
-   // CRITICAL: results are looked up ONLY inside this week's result set.
-   // A team's Week 1 loss can never color that team's Week 2 pick red.
-   let r1="",r2="";
-   if(isCurrent){
-     // Current-week picks remain pending until that same week's games are final.
-     r1=team1?(resultForTeam(team1,results)||String(p.team1_result||"").trim().toUpperCase()):"";
-     r2=team2?(resultForTeam(team2,results)||String(p.team2_result||"").trim().toUpperCase()):"";
-   }else{
-     r1=team1?(resultForTeam(team1,results)||String(p.team1_result||"").trim().toUpperCase()):"";
-     r2=team2?(resultForTeam(team2,results)||String(p.team2_result||"").trim().toUpperCase()):"";
-     // Stored nfl-results.json is the Week 1 fallback only. Never use it for a later week.
-     if(week===1){r1=r1||resultForTeam(team1,storedResults);r2=r2||resultForTeam(team2,storedResults)}
-   }
-   const finished1=!!r1,finished2=!!r2,wins=(r1==="WIN"?1:0)+(r2==="WIN"?1:0);
-   const tr=document.createElement("tr"),n=document.createElement("td");n.textContent=p.name;
+ allPlayers.forEach(base=>{
+   const p=byName.get(key(base.name))||{};const team1=p.team1||"",team2=p.team2||"";
+   // NEVER use a previous week's result for a current-week pick.
+   const live1=team1?resultForTeam(team1,weekResults):"",live2=team2?resultForTeam(team2,weekResults):"";
+   let r1=live1||String(p.team1_result||"").trim().toUpperCase();let r2=live2||String(p.team2_result||"").trim().toUpperCase();
+   // nfl-results.json is the saved Week 1 result source only.
+   if(week===1){if(team1&&!r1)r1=resultForTeam(team1,storedResults);if(team2&&!r2)r2=resultForTeam(team2,storedResults)}
+   const has1=!!team1,has2=!!team2,finished1=!!r1,finished2=!!r2,wins=(r1==="WIN"?1:0)+(r2==="WIN"?1:0);
+   const tr=document.createElement("tr"),n=document.createElement("td");n.textContent=base.name;
    const pc=document.createElement("td");pc.append(makePick(team1,r1),makePick(team2,r2));
    const s=document.createElement("td");
-   if(!team1&&!team2)s.textContent="PENDING";
-   else if(isCurrent && (!finished1||!finished2))s.textContent="PENDING";
-   else if(!isCurrent && (!finished1||!finished2))s.textContent=Number(p.picks_remaining)===1?"1 PICK":"PENDING";
+   if(!has1&&!has2)s.textContent="PENDING";
+   else if(isCurrent && (!finished1||!finished2))s.textContent=has1&&has2?"PENDING":"1 PICK";
+   else if(!isCurrent && (!finished1||!finished2))s.textContent=has1||has2?"1 PICK":"PENDING";
    else s.textContent=wins===0?"OUT":wins===1?"1 PICK":"2 PICKS";
    if(s.textContent==="OUT")s.className="out";
    tr.append(n,pc,s);body.appendChild(tr);
@@ -67,16 +59,22 @@ function makeWeekBox(week,rows,results,isCurrent,storedResults){
  table.appendChild(body);box.appendChild(table);return box;
 }
 async function load(){try{
- const current=await rpc("get_leaderboard",{})||[];
- const currentWeek=current.length?Number(current[0].week_number)||1:1;
- const stored=await fetchStoredResults();
- const liveByWeek=await fetchLiveNFLResults();
+ const currentPlayers=await rpc("get_leaderboard",{})||[];
+ const weekRows=[];for(let w=1;w<=2;w++)weekRows[w]=await rpc("get_leaderboard_for_week",{p_week:w})||[];
+ const maxWeekRows=await rpc("get_leaderboard_for_week",{p_week:2})||[];
+ const stored=await fetchStoredResults(),liveByWeek=await fetchLiveNFLResults();
+ // The weeks table is the authoritative source for which week is current. Do not rely on get_leaderboard's week_number.
+ let currentWeek=2;
+ try{const{data,error}=await db.from("weeks").select("week_number").order("week_number",{ascending:false}).limit(1);if(!error&&data&&data.length)currentWeek=Number(data[0].week_number)||2}catch(e){}
+ const names=new Map();
+ currentPlayers.forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),{name:p.name,status:p.status,picks_remaining:p.picks_remaining})});
+ weekRows[1].forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),{name:p.name,status:p.status,picks_remaining:p.picks_remaining})});
+ maxWeekRows.forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),{name:p.name,status:p.status,picks_remaining:p.picks_remaining})});
+ const allPlayers=Array.from(names.values()).filter(p=>String(p.status||"").toUpperCase()!=="DROPPED");
  const weeks=$("weeks");weeks.innerHTML="";
- // Show completed history first, then the current week's picks.
  for(let w=1;w<=currentWeek;w++){
-   const rows=await rpc("get_leaderboard_for_week",{p_week:w})||[];
-   const weekResults=liveByWeek[w]||{};
-   weeks.appendChild(makeWeekBox(w,rows,weekResults,w===currentWeek,stored));
+   const rows=weekRows[w]||await rpc("get_leaderboard_for_week",{p_week:w})||[];
+   weeks.appendChild(makeWeekBox(w,rows,allPlayers,liveByWeek[w]||{},stored,w===currentWeek));
  }
  $("notice").textContent=`WEEKS 1–${currentWeek} • LIVE • UPDATED AUTOMATICALLY`;
  }catch(e){$("notice").textContent="COULD NOT LOAD LEADERBOARD";$("msg").textContent=e.message||"Please try again."}}
