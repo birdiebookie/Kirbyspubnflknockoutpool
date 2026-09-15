@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Kirby's Knockout Pool — Leaderboard</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#fff;color:#000;font-family:Calibri,Arial,sans-serif;font-size:15px}.wrap{width:min(950px,96%);margin:18px auto 40px}h1{font-size:27px;margin:0}.sub{font-size:13px;font-weight:700;margin:2px 0 12px}.notice{font-size:13px;font-weight:700;background:#fff200;border:1px solid #111;padding:7px 9px;margin-bottom:10px}.top{margin-bottom:12px}.back{display:inline-block;border:1px solid #666;background:#eee;color:#000;text-decoration:none;font-weight:700;padding:8px 12px}.sheet{width:100%;border-collapse:collapse;table-layout:fixed}.sheet th,.sheet td{border:1px solid #777;padding:0;text-align:left;font-weight:700}.sheet th{background:#eee;padding:7px 8px}.player{width:38%}.week{width:42%}.status{width:20%;text-align:center}.pickslot{min-height:38px;padding:7px 8px;border-bottom:1px solid #777;background:#fff;text-align:center}.pickslot:last-child{border-bottom:0}.win{background:#fff200!important}.loss,.out{background:#f00!important}.pending{background:#fff!important}.legend{margin-top:12px;font-weight:700}.legend span{display:inline-block;padding:4px 9px;border:1px solid #777;margin-right:6px}.yellow{background:#fff200}.red{background:#f00}.white{background:#fff}.msg{font-weight:700;margin:10px 0}</style></head>
-<body><div class="wrap"><h1>KIRBY'S KNOCKOUT POOL</h1><div class="sub">NFL 2026 • LIVE LEADERBOARD</div><div class="top"><a id="back" class="back" href="./">← BACK TO MY PICKS</a></div><div id="notice" class="notice">LOADING LEADERBOARD...</div><div id="msg" class="msg"></div><table class="sheet"><thead><tr><th class="player">PLAYER</th><th id="weekHeader" class="week">WEEK 1 — RESULTS</th><th class="status">STATUS</th></tr></thead><tbody id="body"></tbody></table><div class="legend"><span class="yellow">WIN</span><span class="red">LOSS</span><span class="white">PENDING</span></div></div>
+<body><div class="wrap"><h1>KIRBY'S KNOCKOUT POOL</h1><div class="sub">NFL 2026 • LIVE LEADERBOARD</div><div class="top"><a id="back" class="back" href="./">← BACK TO MY PICKS</a></div><div id="notice" class="notice">LOADING LEADERBOARD...</div><div id="msg" class="msg"></div><table class="sheet"><thead><tr><th class="player">PLAYER</th><th id="weekHeader" class="week">WEEK 2 — PICKS</th><th class="status">STATUS</th></tr></thead><tbody id="body"></tbody></table><div class="legend"><span class="yellow">WIN</span><span class="red">LOSS</span><span class="white">PENDING</span></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 "use strict";
 const SUPABASE_URL="https://rkyupmpnsjjgditslpiz.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_hicUgD5WOhRlbPtwMzkaqQ_WktOF7qL",db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
@@ -32,13 +32,33 @@ function makePick(team,result){const d=document.createElement("div"),r=String(re
 async function load(){try{
  const current=await rpc("get_leaderboard",{})||[];
  const currentWeek=current.length?Number(current[0].week_number)||1:1;
- const displayWeek=Math.max(1,currentWeek-1);
+ // The main leaderboard must always show the CURRENT week, not the previous week.
+ const displayWeek=currentWeek;
  const rows=await rpc("get_leaderboard_for_week",{p_week:displayWeek})||[];
  const stored=await fetchStoredResults();const live=await fetchLiveNFLResults();const nflResults=Object.assign({},stored,live);
- $("notice").textContent=rows.length?`WEEK ${displayWeek} • RESULTS • UPDATED AUTOMATICALLY`:"NO PLAYERS YET";
- $("weekHeader").textContent=`WEEK ${displayWeek} — RESULTS`;
+ $("notice").textContent=rows.length?`WEEK ${displayWeek} • PICKS • UPDATED AUTOMATICALLY`:"NO PLAYERS YET";
+ $("weekHeader").textContent=`WEEK ${displayWeek} — PICKS`;
  const b=$("body");b.innerHTML="";
- rows.filter(p=>String(p.status||"").toUpperCase()!=="DROPPED").forEach(p=>{const team1=p.team1,team2=p.team2,r1=resultForTeam(team1,nflResults)||String(p.team1_result||"").trim().toUpperCase(),r2=resultForTeam(team2,nflResults)||String(p.team2_result||"").trim().toUpperCase(),wins=(r1==="WIN"?1:0)+(r2==="WIN"?1:0),finished1=!!r1,finished2=!!r2,tr=document.createElement("tr"),n=document.createElement("td");n.textContent=p.name;const pc=document.createElement("td");pc.append(makePick(team1,r1),makePick(team2,r2));const s=document.createElement("td");s.textContent=finished1&&finished2?(wins===0?"OUT":wins===1?"1 PICK":"2 PICKS"):(String(p.status||"").toUpperCase()==="OUT"?"OUT":Number(p.picks_remaining)===1?"1 PICK":"2 PICKS");if(s.textContent==="OUT")s.className="out";tr.append(n,pc,s);b.appendChild(tr)})
+ rows.filter(p=>String(p.status||"").toUpperCase()!=="DROPPED").forEach(p=>{
+   const team1=p.team1||"",team2=p.team2||"";
+   // Results are only applied to teams that the player actually picked.
+   // An empty/unpicked slot stays white and pending.
+   const r1=team1?(resultForTeam(team1,nflResults)||String(p.team1_result||"").trim().toUpperCase()):"";
+   const r2=team2?(resultForTeam(team2,nflResults)||String(p.team2_result||"").trim().toUpperCase()):"";
+   const wins=(r1==="WIN"?1:0)+(r2==="WIN"?1:0),finished1=!!r1,finished2=!!r2,
+     tr=document.createElement("tr"),n=document.createElement("td");
+   n.textContent=p.name;
+   const pc=document.createElement("td");pc.append(makePick(team1,r1),makePick(team2,r2));
+   const s=document.createElement("td");
+   // Until a player makes both current-week picks, status is white PENDING.
+   if(!team1&&!team2){s.textContent="PENDING";}
+   else if(team1&&!team2){s.textContent="1 PICK";}
+   else if(!team1&&team2){s.textContent="1 PICK";}
+   else if(finished1&&finished2){s.textContent=wins===0?"OUT":wins===1?"1 PICK":"2 PICKS";}
+   else{s.textContent="PENDING";}
+   if(s.textContent==="OUT")s.className="out";
+   tr.append(n,pc,s);b.appendChild(tr)
+ })
  }catch(e){$("notice").textContent="COULD NOT LOAD LEADERBOARD";$("msg").textContent=e.message||"Please try again."}}
 const token=tokenFromUrl();if(token)$("back").href="./?token="+encodeURIComponent(token);load();setInterval(load,30000);
 </script></body></html>
