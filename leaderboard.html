@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Kirby's Knockout Pool — Leaderboard</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#fff;color:#000;font-family:Calibri,Arial,sans-serif;font-size:15px}.wrap{width:min(950px,96%);margin:18px auto 40px}h1{font-size:27px;margin:0}.sub{font-size:13px;font-weight:700;margin:2px 0 12px}.notice{font-size:13px;font-weight:700;background:#fff200;border:1px solid #111;padding:7px 9px;margin-bottom:10px}.top{margin-bottom:12px}.back{display:inline-block;border:1px solid #666;background:#eee;color:#000;text-decoration:none;font-weight:700;padding:8px 12px}.sheet{width:100%;border-collapse:collapse;table-layout:fixed}.sheet th,.sheet td{border:1px solid #777;padding:0;text-align:left;font-weight:700}.sheet th{background:#eee;padding:7px 8px}.player{width:38%}.week{width:42%}.status{width:20%;text-align:center}.pickslot{min-height:38px;padding:7px 8px;border-bottom:1px solid #777;background:#fff;text-align:center}.pickslot:last-child{border-bottom:0}.win{background:#fff200!important}.loss,.out{background:#f00!important}.pending{background:#fff!important}.legend{margin-top:12px;font-weight:700}.legend span{display:inline-block;padding:4px 9px;border:1px solid #777;margin-right:6px}.yellow{background:#fff200}.red{background:#f00}.white{background:#fff}.msg{font-weight:700;margin:10px 0}</style></head>
-<body><div class="wrap"><h1>KIRBY'S KNOCKOUT POOL</h1><div class="sub">NFL 2026 • LIVE LEADERBOARD</div><div class="top"><a id="back" class="back" href="./">← BACK TO MY PICKS</a></div><div id="notice" class="notice">LOADING LEADERBOARD...</div><div id="msg" class="msg"></div><table class="sheet"><thead><tr><th class="player">PLAYER</th><th id="weekHeader" class="week">WEEK 2 — PICKS</th><th class="status">STATUS</th></tr></thead><tbody id="body"></tbody></table><div class="legend"><span class="yellow">WIN</span><span class="red">LOSS</span><span class="white">PENDING</span></div></div>
+<style>*{box-sizing:border-box}body{margin:0;background:#fff;color:#000;font-family:Calibri,Arial,sans-serif;font-size:15px}.wrap{width:min(950px,96%);margin:18px auto 40px}h1{font-size:27px;margin:0}.sub{font-size:13px;font-weight:700;margin:2px 0 12px}.notice{font-size:13px;font-weight:700;background:#fff200;border:1px solid #111;padding:7px 9px;margin-bottom:10px}.top{margin-bottom:12px}.back{display:inline-block;border:1px solid #666;background:#eee;color:#000;text-decoration:none;font-weight:700;padding:8px 12px}.weekBox{margin:16px 0 20px;border:1px solid #777}.weekTitle{background:#fff200;border-bottom:1px solid #111;font-size:18px;font-weight:900;padding:9px}.weekTitle.current{background:#70ad47}.sheet{width:100%;border-collapse:collapse;table-layout:fixed}.sheet th,.sheet td{border:1px solid #777;padding:0;text-align:left;font-weight:700}.sheet th{background:#eee;padding:7px 8px}.player{width:38%}.week{width:42%}.status{width:20%;text-align:center}.pickslot{min-height:38px;padding:7px 8px;border-bottom:1px solid #777;background:#fff;text-align:center}.pickslot:last-child{border-bottom:0}.win{background:#fff200!important}.loss,.out{background:#f00!important}.pending{background:#fff!important}.legend{margin-top:12px;font-weight:700}.legend span{display:inline-block;padding:4px 9px;border:1px solid #777;margin-right:6px}.yellow{background:#fff200}.red{background:#f00}.white{background:#fff}.msg{font-weight:700;margin:10px 0}</style></head>
+<body><div class="wrap"><h1>KIRBY'S KNOCKOUT POOL</h1><div class="sub">NFL 2026 • LIVE LEADERBOARD</div><div class="top"><a id="back" class="back" href="./">← BACK TO MY PICKS</a></div><div id="notice" class="notice">LOADING LEADERBOARD...</div><div id="msg" class="msg"></div><div id="weeks"></div><div class="legend"><span class="yellow">WIN</span><span class="red">LOSS</span><span class="white">PENDING</span></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 "use strict";
 const SUPABASE_URL="https://rkyupmpnsjjgditslpiz.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_hicUgD5WOhRlbPtwMzkaqQ_WktOF7qL",db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
@@ -10,55 +10,75 @@ function tokenFromUrl(){const q=new URLSearchParams(location.search);return q.ge
 function cleanTeam(s){return String(s||"").replace(/\s+[-+]\d+(?:\.\d+)?\s*$/g,"").replace(/\s+/g," ").trim().toLowerCase()}
 function addResult(results,name,res){if(!name)return;const k=cleanTeam(name);if(k)results[k]=res}
 async function fetchLiveNFLResults(){
- const results={};
+ const byWeek={};
  try{
-  const now=new Date(),from=new Date(now.getTime()-8*86400000),to=new Date(now.getTime()+1*86400000),fmt=d=>d.toISOString().slice(0,10).replaceAll("-","");
+  const now=new Date(),from=new Date(now.getTime()-35*86400000),to=new Date(now.getTime()+1*86400000),fmt=d=>d.toISOString().slice(0,10).replaceAll("-","");
   const url=`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${fmt(from)}-${fmt(to)}&limit=1000`;
-  const r=await fetch(url,{cache:"no-store"}); if(!r.ok)throw Error("ESPN HTTP "+r.status); const data=await r.json();
+  const r=await fetch(url,{cache:"no-store"});if(!r.ok)throw Error("ESPN HTTP "+r.status);const data=await r.json();
   for(const ev of (data.events||[])){
-   const st=ev.status?.type||{}; if(!(st.completed||st.state==="post"||String(st.name||"").toUpperCase().includes("FINAL")))continue;
-   const teams=ev.competitions?.[0]?.competitors||[]; if(teams.length<2)continue;
-   const a=teams[0],b=teams[1],sa=Number(a.score),sb=Number(b.score); if(!Number.isFinite(sa)||!Number.isFinite(sb)||sa===sb)continue;
+   const st=ev.status?.type||{};if(!(st.completed||st.state==="post"||String(st.name||"").toUpperCase().includes("FINAL")))continue;
+   const teams=ev.competitions?.[0]?.competitors||[];if(teams.length<2)continue;
+   const a=teams[0],b=teams[1],sa=Number(a.score),sb=Number(b.score);if(!Number.isFinite(sa)||!Number.isFinite(sb)||sa===sb)continue;
+   const wk=Number(ev.week?.number||ev.competitions?.[0]?.week?.number||0);if(!wk)continue;
+   if(!byWeek[wk])byWeek[wk]={};
    const winner=sa>sb?a:b,loser=sa>sb?b:a;
-   for(const t of [winner]){const x=t.team||{};[x.displayName,x.shortDisplayName,x.name,x.abbreviation].forEach(n=>addResult(results,n,"WIN"))}
-   for(const t of [loser]){const x=t.team||{};[x.displayName,x.shortDisplayName,x.name,x.abbreviation].forEach(n=>addResult(results,n,"LOSS"))}
+   const wx=winner.team||{},lx=loser.team||{};
+   [wx.displayName,wx.shortDisplayName,wx.name,wx.abbreviation].forEach(n=>addResult(byWeek[wk],n,"WIN"));
+   [lx.displayName,lx.shortDisplayName,lx.name,lx.abbreviation].forEach(n=>addResult(byWeek[wk],n,"LOSS"));
   }
  }catch(e){console.warn("Live ESPN results unavailable",e)}
- return results;
+ return byWeek;
 }
-async function fetchStoredResults(){try{const r=await fetch("./nfl-results.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error();return (await r.json()).results||{}}catch(e){return {}}}
+async function fetchStoredResults(){try{const r=await fetch("./nfl-results.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error();return(await r.json()).results||{}}catch(e){return{}}}
 function resultForTeam(team,results){const k=cleanTeam(team);if(!k)return"";if(results[k])return results[k];for(const x of Object.keys(results)){const y=cleanTeam(x);if(k===y||k.endsWith(" "+y)||y.endsWith(" "+k))return results[x]}return""}
 function makePick(team,result){const d=document.createElement("div"),r=String(result||"").trim().toUpperCase();d.className="pickslot pending";d.textContent=team||"Pending";if(r==="WIN")d.className="pickslot win";else if(r==="LOSS")d.className="pickslot loss";return d}
+function makeWeekBox(week,rows,results,isCurrent,storedResults){
+ const box=document.createElement("div");box.className="weekBox";
+ const title=document.createElement("div");title.className="weekTitle"+(isCurrent?" current":"");title.textContent=isCurrent?`WEEK ${week} • PICKS • UPDATED AUTOMATICALLY`:`WEEK ${week} • RESULTS`;
+ box.appendChild(title);
+ const table=document.createElement("table");table.className="sheet";table.innerHTML='<thead><tr><th class="player">PLAYER</th><th class="week">WEEK '+week+(isCurrent?' — PICKS':' — RESULTS')+'</th><th class="status">STATUS</th></tr></thead>';
+ const body=document.createElement("tbody");
+ rows.filter(p=>String(p.status||"").toUpperCase()!=="DROPPED").forEach(p=>{
+   const team1=p.team1||"",team2=p.team2||"";
+   // CRITICAL: results are looked up ONLY inside this week's result set.
+   // A team's Week 1 loss can never color that team's Week 2 pick red.
+   let r1="",r2="";
+   if(isCurrent){
+     // Current-week picks remain pending until that same week's games are final.
+     r1=team1?(resultForTeam(team1,results)||String(p.team1_result||"").trim().toUpperCase()):"";
+     r2=team2?(resultForTeam(team2,results)||String(p.team2_result||"").trim().toUpperCase()):"";
+   }else{
+     r1=team1?(resultForTeam(team1,results)||String(p.team1_result||"").trim().toUpperCase()):"";
+     r2=team2?(resultForTeam(team2,results)||String(p.team2_result||"").trim().toUpperCase()):"";
+     // Stored nfl-results.json is the Week 1 fallback only. Never use it for a later week.
+     if(week===1){r1=r1||resultForTeam(team1,storedResults);r2=r2||resultForTeam(team2,storedResults)}
+   }
+   const finished1=!!r1,finished2=!!r2,wins=(r1==="WIN"?1:0)+(r2==="WIN"?1:0);
+   const tr=document.createElement("tr"),n=document.createElement("td");n.textContent=p.name;
+   const pc=document.createElement("td");pc.append(makePick(team1,r1),makePick(team2,r2));
+   const s=document.createElement("td");
+   if(!team1&&!team2)s.textContent="PENDING";
+   else if(isCurrent && (!finished1||!finished2))s.textContent="PENDING";
+   else if(!isCurrent && (!finished1||!finished2))s.textContent=Number(p.picks_remaining)===1?"1 PICK":"PENDING";
+   else s.textContent=wins===0?"OUT":wins===1?"1 PICK":"2 PICKS";
+   if(s.textContent==="OUT")s.className="out";
+   tr.append(n,pc,s);body.appendChild(tr);
+ });
+ table.appendChild(body);box.appendChild(table);return box;
+}
 async function load(){try{
  const current=await rpc("get_leaderboard",{})||[];
  const currentWeek=current.length?Number(current[0].week_number)||1:1;
- // The main leaderboard must always show the CURRENT week, not the previous week.
- const displayWeek=currentWeek;
- const rows=await rpc("get_leaderboard_for_week",{p_week:displayWeek})||[];
- const stored=await fetchStoredResults();const live=await fetchLiveNFLResults();const nflResults=Object.assign({},stored,live);
- $("notice").textContent=rows.length?`WEEK ${displayWeek} • PICKS • UPDATED AUTOMATICALLY`:"NO PLAYERS YET";
- $("weekHeader").textContent=`WEEK ${displayWeek} — PICKS`;
- const b=$("body");b.innerHTML="";
- rows.filter(p=>String(p.status||"").toUpperCase()!=="DROPPED").forEach(p=>{
-   const team1=p.team1||"",team2=p.team2||"";
-   // Results are only applied to teams that the player actually picked.
-   // An empty/unpicked slot stays white and pending.
-   const r1=team1?(resultForTeam(team1,nflResults)||String(p.team1_result||"").trim().toUpperCase()):"";
-   const r2=team2?(resultForTeam(team2,nflResults)||String(p.team2_result||"").trim().toUpperCase()):"";
-   const wins=(r1==="WIN"?1:0)+(r2==="WIN"?1:0),finished1=!!r1,finished2=!!r2,
-     tr=document.createElement("tr"),n=document.createElement("td");
-   n.textContent=p.name;
-   const pc=document.createElement("td");pc.append(makePick(team1,r1),makePick(team2,r2));
-   const s=document.createElement("td");
-   // Until a player makes both current-week picks, status is white PENDING.
-   if(!team1&&!team2){s.textContent="PENDING";}
-   else if(team1&&!team2){s.textContent="1 PICK";}
-   else if(!team1&&team2){s.textContent="1 PICK";}
-   else if(finished1&&finished2){s.textContent=wins===0?"OUT":wins===1?"1 PICK":"2 PICKS";}
-   else{s.textContent="PENDING";}
-   if(s.textContent==="OUT")s.className="out";
-   tr.append(n,pc,s);b.appendChild(tr)
- })
+ const stored=await fetchStoredResults();
+ const liveByWeek=await fetchLiveNFLResults();
+ const weeks=$("weeks");weeks.innerHTML="";
+ // Show completed history first, then the current week's picks.
+ for(let w=1;w<=currentWeek;w++){
+   const rows=await rpc("get_leaderboard_for_week",{p_week:w})||[];
+   const weekResults=liveByWeek[w]||{};
+   weeks.appendChild(makeWeekBox(w,rows,weekResults,w===currentWeek,stored));
+ }
+ $("notice").textContent=`WEEKS 1–${currentWeek} • LIVE • UPDATED AUTOMATICALLY`;
  }catch(e){$("notice").textContent="COULD NOT LOAD LEADERBOARD";$("msg").textContent=e.message||"Please try again."}}
 const token=tokenFromUrl();if(token)$("back").href="./?token="+encodeURIComponent(token);load();setInterval(load,30000);
 </script></body></html>
