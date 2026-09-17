@@ -62,8 +62,6 @@
     "miami dolphins": "LOSS",
     "min": "WIN",
     "minnesota vikings": "WIN",
-    "ne": "LOSS",
-    "new england patriots": "LOSS",
     "new orleans saints": "LOSS",
     "new york giants": "WIN",
     "new york jets": "WIN",
@@ -72,7 +70,6 @@
     "nyj": "WIN",
     "packers": "LOSS",
     "panthers": "LOSS",
-    "patriots": "LOSS",
     "phi": "WIN",
     "philadelphia eagles": "WIN",
     "pit": "WIN",
@@ -82,9 +79,6 @@
     "ravens": "WIN",
     "saints": "LOSS",
     "san francisco 49ers": "WIN",
-    "sea": "WIN",
-    "seahawks": "WIN",
-    "seattle seahawks": "WIN",
     "sf": "WIN",
     "steelers": "WIN",
     "tampa bay buccaneers": "LOSS",
@@ -97,5 +91,5 @@
     "washington commanders": "LOSS",
     "wsh": "LOSS"
   },
-  "updated_at": "2026-09-16T23:46:11.285568+00:00"
+  "updated_at": "2026-09-17T01:48:35.127104+00:00"
 }
