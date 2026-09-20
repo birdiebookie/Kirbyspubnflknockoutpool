@@ -19,8 +19,10 @@ jobs:
         run: |
           python - <<'PY'
           import datetime, json, urllib.request
+          from zoneinfo import ZoneInfo
 
-          START = datetime.datetime(2026, 9, 10, tzinfo=datetime.timezone(datetime.timedelta(hours=-4)))
+          ET = ZoneInfo('America/New_York')
+          START = datetime.datetime(2026, 9, 10, tzinfo=ET)
           path = 'nfl-results.json'
 
           try:
@@ -60,7 +62,7 @@ jobs:
                       continue
 
                   game_date = datetime.datetime.fromisoformat(ev.get('date','').replace('Z','+00:00'))
-                  game_week = ((game_date.astimezone(START.tzinfo).date() - START.date()).days // 7) + 1
+                  game_week = ((game_date.astimezone(ET).date() - START.date()).days // 7) + 1
                   if game_week < 1 or game_week > 18:
                       continue
 
