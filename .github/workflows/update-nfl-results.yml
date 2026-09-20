@@ -19,8 +19,19 @@ jobs:
         run: |
           python - <<'PY'
           import datetime, json, urllib.request
+
+          START = datetime.datetime(2026, 9, 10, tzinfo=datetime.timezone(datetime.timedelta(hours=-4)))
+          path = 'nfl-results.json'
+
+          try:
+              with open(path) as f:
+                  existing = json.load(f)
+          except Exception:
+              existing = {}
+
+          weeks = existing.get('weeks') or {}
+
           today = datetime.date.today()
-          results = {}
           for offset in range(-7, 2):
               d = today + datetime.timedelta(days=offset)
               url = f'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates={d:%Y%m%d}&limit=1000'
@@ -30,33 +41,61 @@ jobs:
               except Exception as e:
                   print('skip', d, e)
                   continue
+
               for ev in data.get('events', []):
                   comp = (ev.get('competitions') or [{}])[0]
                   st = ev.get('status', {}).get('type', {})
                   if not (st.get('completed') or st.get('state') == 'post' or 'FINAL' in str(st.get('name','')).upper()):
                       continue
+
                   teams = comp.get('competitors') or []
                   if len(teams) < 2:
                       continue
                   try:
-                      a,b = teams[0],teams[1]
-                      sa,sb = float(a.get('score')),float(b.get('score'))
+                      a, b = teams[0], teams[1]
+                      sa, sb = float(a.get('score')), float(b.get('score'))
                   except Exception:
                       continue
                   if sa == sb:
                       continue
-                  winner, loser = (a,b) if sa > sb else (b,a)
-                  for t,res in ((winner,'WIN'),(loser,'LOSS')):
+
+                  game_date = datetime.datetime.fromisoformat(ev.get('date','').replace('Z','+00:00'))
+                  game_week = ((game_date.astimezone(START.tzinfo).date() - START.date()).days // 7) + 1
+                  if game_week < 1 or game_week > 18:
+                      continue
+
+                  bucket = weeks.setdefault(str(game_week), {})
+                  winner, loser = (a, b) if sa > sb else (b, a)
+                  for t, res in ((winner, 'WIN'), (loser, 'LOSS')):
                       team = t.get('team') or {}
-                      names = [team.get('displayName'),team.get('shortDisplayName'),team.get('name'),team.get('abbreviation')]
+                      names = [
+                          team.get('displayName'),
+                          team.get('shortDisplayName'),
+                          team.get('name'),
+                          team.get('abbreviation')
+                      ]
                       for name in names:
                           if name:
                               key = ' '.join(str(name).lower().split())
-                              results[key] = res
-          # Confirmed official correction: NFL.com lists Detroit 31, New Orleans 30 in Week 1.\n          # Keep this override so a transient upstream feed error cannot mark the Lions as a loss.\n          results['det'] = 'WIN'\n          results['detroit lions'] = 'WIN'\n          results['lions'] = 'WIN'\n          out = {'updated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'results': results}
-          with open('nfl-results.json','w') as f:
-              json.dump(out,f,indent=2,sort_keys=True)
-          print('results:', len(results))
+                              bucket[key] = res
+
+          # Confirmed official correction: Detroit won Week 1.
+          weeks.setdefault('1', {})['det'] = 'WIN'
+          weeks['1']['detroit lions'] = 'WIN'
+          weeks['1']['lions'] = 'WIN'
+
+          # Backward compatibility: results always represents Week 1.
+          week1 = weeks.get('1', {})
+          out = {
+              'updated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              'results': week1,
+              'weeks': weeks
+          }
+
+          with open(path, 'w') as f:
+              json.dump(out, f, indent=2, sort_keys=True)
+
+          print('weeks:', {k: len(v) for k, v in weeks.items()})
           PY
 
       - name: Commit updated results
