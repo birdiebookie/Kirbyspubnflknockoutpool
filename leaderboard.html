@@ -103,7 +103,7 @@ function render(rows,current,live,stored,myName){
  (rows[current]||[]).forEach(p=>{if(p.name)names.set(key(p.name),p)});
  (rows[1]||[]).forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),p)});
  const all=[...names.values()].filter(p=>String(p.status||"").toUpperCase()!=="DROPPED");
- const reveal=new Date().getDay()!==0||new Date().getHours()>=13;
+ const lockTime=(rows[current]||[])[0]?.lock_time; const reveal=lockTime ? new Date(lockTime)<=new Date() : true;
  for(const base of all){
   const name=base.name,rule=priorRule(name,rows,current),cur=(rows[current]||[]).find(p=>key(p.name)===key(name))||{},w1=(rows[1]||[]).find(p=>key(p.name)===key(name))||{};
   const card=document.createElement("div");card.className="player";
@@ -122,7 +122,7 @@ function render(rows,current,live,stored,myName){
   const t2=document.createElement("div");t2.className="weekTitle w2";t2.textContent="WEEK "+current;sec2.appendChild(t2);
   const p2=document.createElement("div");p2.className="picks";
   const dead1=rule.out||rule.allowed<1,dead2=rule.out||rule.allowed<2;
-  p2.append(makePick(cur.team1,String(cur.team1_result||"").toUpperCase(),dead1,!reveal&&!myName),makePick(cur.team2,String(cur.team2_result||"").toUpperCase(),dead2,!reveal&&!myName));
+  const r21=String(cur.team1_result||"").toUpperCase()||resultFor(cur.team1,live[current]||{}); const r22=String(cur.team2_result||"").toUpperCase()||resultFor(cur.team2,live[current]||{}); p2.append(makePick(cur.team1,r21,dead1,!reveal&&!myName),makePick(cur.team2,r22,dead2,!reveal&&!myName));
   sec2.appendChild(p2);card.appendChild(sec2);root.appendChild(card);
  }
  $("notice").textContent="WEEKS 1–"+current+" • CURRENT PICKS "+(reveal?"VISIBLE":"HIDDEN")+" • UPDATES AUTOMATICALLY";
