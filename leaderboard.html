@@ -115,14 +115,14 @@ function render(rows,current,live,stored,myName){
   const sec1=document.createElement("div");sec1.className="section";
   const t1=document.createElement("div");t1.className="weekTitle w1";t1.textContent="WEEK 1";sec1.appendChild(t1);
   const p1=document.createElement("div");p1.className="picks";
-  const r11=String(w1.team1_result||"").toUpperCase()||resultFor(w1.team1,live[1]||{})||resultFor(w1.team1,stored.weeks?.["1"]||stored.results||{});
-  const r12=String(w1.team2_result||"").toUpperCase()||resultFor(w1.team2,live[1]||{})||resultFor(w1.team2,stored.weeks?.["1"]||stored.results||{});
+  const r11=resultFor(w1.team1,live[1]||{})||resultFor(w1.team1,stored.weeks?.["1"]||stored.results||{})||String(w1.team1_result||"").toUpperCase();
+  const r12=resultFor(w1.team2,live[1]||{})||resultFor(w1.team2,stored.weeks?.["1"]||stored.results||{})||String(w1.team2_result||"").toUpperCase();
   p1.append(makePick(w1.team1,r11,false,false),makePick(w1.team2,r12,false,false));sec1.appendChild(p1);card.appendChild(sec1);
   const sec2=document.createElement("div");sec2.className="section";
   const t2=document.createElement("div");t2.className="weekTitle w2";t2.textContent="WEEK "+current;sec2.appendChild(t2);
   const p2=document.createElement("div");p2.className="picks";
   const dead1=rule.out||rule.allowed<1,dead2=rule.out||rule.allowed<2;
-  const r21=String(cur.team1_result||"").toUpperCase()||resultFor(cur.team1,stored.weeks?.[String(current)]||{})||resultFor(cur.team1,live[current]||{}); const r22=String(cur.team2_result||"").toUpperCase()||resultFor(cur.team2,stored.weeks?.[String(current)]||{})||resultFor(cur.team2,live[current]||{}); const hideCurrent = !reveal && key(name) !== key(myName); p2.append(makePick(cur.team1,r21,dead1,hideCurrent),makePick(cur.team2,r22,dead2,hideCurrent));
+  const r21=resultFor(cur.team1,live[current]||{})||resultFor(cur.team1,stored.weeks?.[String(current)]||{})||String(cur.team1_result||"").toUpperCase(); const r22=resultFor(cur.team2,live[current]||{})||resultFor(cur.team2,stored.weeks?.[String(current)]||{})||String(cur.team2_result||"").toUpperCase(); const hideCurrent = !reveal && key(name) !== key(myName); p2.append(makePick(cur.team1,r21,dead1,hideCurrent),makePick(cur.team2,r22,dead2,hideCurrent));
   sec2.appendChild(p2);card.appendChild(sec2);root.appendChild(card);
  }
  $("notice").textContent="WEEKS 1–"+current+" • CURRENT PICKS "+(reveal?"VISIBLE":"HIDDEN")+" • UPDATES AUTOMATICALLY";
