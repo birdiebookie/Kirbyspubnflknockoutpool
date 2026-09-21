@@ -11,6 +11,10 @@ body{margin:0;background:#fff;color:#000;font-family:Arial,Calibri,sans-serif}
 .wrap{width:98%;max-width:900px;margin:14px auto 30px}
 h1{font-size:28px;margin:0}.sub{font-size:15px;font-weight:800;margin:3px 0 12px}
 .notice{background:#fff200;border:2px solid #111;padding:10px;font-weight:900;margin-bottom:10px}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 12px}
+.stat{border:2px solid #555;text-align:center;padding:8px 4px;background:#eee;font-weight:900}
+.stat b{display:block;font-size:24px;line-height:1.05}.stat span{display:block;font-size:10px;margin-top:3px}
+@media(max-width:520px){.summary{grid-template-columns:repeat(2,1fr)}}
 .back{display:block;border:2px solid #666;background:#eee;color:#000;text-decoration:none;text-align:center;font-weight:900;padding:11px;margin-bottom:10px}
 .legend{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;font-size:12px;font-weight:900}
 .legend span{border:1px solid #777;padding:4px 8px}.win{background:#fff200!important}.loss{background:#f00!important}.picked{background:#70ad47!important}
@@ -36,6 +40,12 @@ h1{font-size:28px;margin:0}.sub{font-size:15px;font-weight:800;margin:3px 0 12px
 <div class="sub">NFL 2026 • LIVE LEADERBOARD</div>
 <a id="back" class="back" href="./">← BACK TO MY PICKS</a>
 <div id="notice" class="notice">LOADING...</div>
+<div class="summary">
+  <div class="stat"><b id="statTotal">-</b><span>TOTAL PLAYERS</span></div>
+  <div class="stat"><b id="statOut">-</b><span>OUT</span></div>
+  <div class="stat"><b id="statOne">-</b><span>1 PICK LEFT</span></div>
+  <div class="stat"><b id="statTwo">-</b><span>2 PICKS LEFT</span></div>
+</div>
 <div class="legend"><span class="win">WIN</span><span class="loss">LOSS / XXX</span><span class="picked">PICKED</span><span>NOT PICKED</span></div>
 <div id="players"></div>
 </div>
@@ -88,6 +98,22 @@ function priorRule(name,rows,current){
  const unavailable=Math.min(2,losses+missing);
  return {allowed:Math.max(0,2-unavailable),out:losses+missing>=2,wins};
 }
+function liveStats(rows,current,live,stored,all){
+ let out=0,one=0,two=0;
+ for(const base of all){
+  const rule=priorRule(base.name,rows,current);
+  if(rule.out){out++;continue}
+  const cur=(rows[current]||[]).find(p=>key(p.name)===key(base.name))||{};
+  let remaining=rule.allowed;
+  for(const team of [cur.team1,cur.team2]){
+   if(!team)continue;
+   const r=resultFor(team,live[current]||{})||resultFor(team,stored.weeks?.[String(current)]||{})||"";
+   if(r==="LOSS")remaining=Math.max(0,remaining-1);
+  }
+  if(remaining<=0)out++; else if(remaining===1)one++; else two++;
+ }
+ return {total:all.length,out,one,two};
+}
 function makePick(team,result,dead,hide){
  const d=document.createElement("div");d.className="pick empty";
  if(dead){d.className="pick loss";d.innerHTML="<strong>XXX</strong><small>PICK LOST</small>";return d}
@@ -103,6 +129,11 @@ function render(rows,current,live,stored,myName){
  (rows[current]||[]).forEach(p=>{if(p.name)names.set(key(p.name),p)});
  (rows[1]||[]).forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),p)});
  const all=[...names.values()].filter(p=>String(p.status||"").toUpperCase()!=="DROPPED");
+ const stats=liveStats(rows,current,live,stored,all);
+ $("statTotal").textContent=stats.total;
+ $("statOut").textContent=stats.out;
+ $("statOne").textContent=stats.one;
+ $("statTwo").textContent=stats.two;
  const lockTime=(rows[current]||[])[0]?.lock_time; const reveal=lockTime ? new Date(lockTime)<=new Date() : true;
  for(const base of all){
   const name=base.name,rule=priorRule(name,rows,current),cur=(rows[current]||[]).find(p=>key(p.name)===key(name))||{},w1=(rows[1]||[]).find(p=>key(p.name)===key(name))||{};
