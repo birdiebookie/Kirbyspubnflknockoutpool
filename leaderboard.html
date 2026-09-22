@@ -85,18 +85,18 @@ async function liveResults(){
  return out;
 }
 function priorRule(name,rows,current){
- let losses=0,missing=0,wins=0;
+ let failures=0,wins=0;
  for(let w=1;w<current;w++){
+  const allowed=Math.max(0,2-failures); if(allowed===0)break;
   const p=(rows[w]||[]).find(x=>key(x.name)===key(name))||{};
   for(const slot of [1,2]){
+   if(slot>allowed)break;
    const t=slot===1?p.team1:p.team2;
    const r=String(slot===1?p.team1_result:p.team2_result||"").toUpperCase();
-   if(!t){missing++;continue}
-   if(r==="LOSS")losses++; else if(r==="WIN")wins++;
+   if(!t||r==="LOSS")failures++; else if(r==="WIN")wins++;
   }
  }
- const unavailable=Math.min(2,losses+missing);
- return {allowed:Math.max(0,2-unavailable),out:losses+missing>=2,wins};
+ return {allowed:Math.max(0,2-failures),out:failures>=2,wins};
 }
 function liveStats(rows,current,live,stored,all){
  let out=0,one=0,two=0;
