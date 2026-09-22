@@ -8,13 +8,9 @@
     "detroit lions": "WIN",
     "kansas city chiefs": "WIN",
     "kc": "WIN",
-    "lions": "WIN",
-    "49ers": "WIN",
-    "san francisco 49ers": "WIN",
-    "sf": "WIN",
-    "san francisco": "WIN"
+    "lions": "WIN"
   },
-  "updated_at": "2026-09-22T03:44:08.180Z",
+  "updated_at": "2026-09-22T04:45:13.014297+00:00",
   "weeks": {
     "1": {
       "broncos": "LOSS",
@@ -67,6 +63,7 @@
       "eagles": "WIN",
       "falcons": "LOSS",
       "gb": "WIN",
+      "giants": "LOSS",
       "green bay packers": "WIN",
       "hou": "LOSS",
       "houston texans": "LOSS",
@@ -79,9 +76,11 @@
       "kansas city chiefs": "WIN",
       "kc": "WIN",
       "lac": "LOSS",
+      "lar": "WIN",
       "las vegas raiders": "WIN",
       "lions": "LOSS",
       "los angeles chargers": "LOSS",
+      "los angeles rams": "WIN",
       "lv": "WIN",
       "mia": "LOSS",
       "miami dolphins": "LOSS",
@@ -90,8 +89,10 @@
       "ne": "WIN",
       "new england patriots": "WIN",
       "new orleans saints": "WIN",
+      "new york giants": "LOSS",
       "new york jets": "LOSS",
       "no": "WIN",
+      "nyg": "LOSS",
       "nyj": "LOSS",
       "packers": "WIN",
       "panthers": "WIN",
@@ -101,6 +102,7 @@
       "pit": "LOSS",
       "pittsburgh steelers": "LOSS",
       "raiders": "WIN",
+      "rams": "WIN",
       "ravens": "LOSS",
       "saints": "WIN",
       "san francisco 49ers": "WIN",
@@ -117,13 +119,7 @@
       "titans": "LOSS",
       "vikings": "WIN",
       "washington commanders": "LOSS",
-      "wsh": "LOSS",
-      "rams": "WIN",
-      "lar": "WIN",
-      "los angeles rams": "WIN",
-      "giants": "LOSS",
-      "nyg": "LOSS",
-      "new york giants": "LOSS"
+      "wsh": "LOSS"
     }
   }
 }
