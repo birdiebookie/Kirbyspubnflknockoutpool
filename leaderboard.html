@@ -114,11 +114,11 @@ function liveStats(rows,current,live,stored,all){
  }
  return {total:all.length,out,one,two};
 }
-function makePick(team,result,dead,hide){
+function makePick(team,result,dead,hide,placeholder){
  const d=document.createElement("div");d.className="pick empty";
  if(dead){d.className="pick loss";d.innerHTML="<strong>XXX</strong><small>PICK LOST</small>";return d}
  if(hide&&team){d.className="pick picked";d.textContent="PICKED";return d}
- d.textContent=team||"NOT PICKED";
+ d.textContent=team||placeholder||"NOT PICKED";
  if(result==="WIN")d.className="pick win";
  if(result==="LOSS")d.className="pick loss";
  return d;
@@ -154,7 +154,7 @@ function render(rows,current,live,stored,myName){
   const p2=document.createElement("div");p2.className="picks";
   const dead1=rule.out||rule.allowed<1,dead2=rule.out||rule.allowed<2;
   const r21=resultFor(cur.team1,live[current]||{})||resultFor(cur.team1,stored.weeks?.[String(current)]||{})||String(cur.team1_result||"").toUpperCase(); const r22=resultFor(cur.team2,live[current]||{})||resultFor(cur.team2,stored.weeks?.[String(current)]||{})||String(cur.team2_result||"").toUpperCase(); const hideCurrent = !reveal && key(name) !== key(myName); p2.append(makePick(cur.team1,r21,dead1,hideCurrent && !r21),makePick(cur.team2,r22,dead2,hideCurrent && !r22));
-  sec2.appendChild(p2);card.appendChild(sec2);root.appendChild(card);
+  sec2.appendChild(p2);card.appendChild(sec2);\n  const sec3=document.createElement("div");sec3.className="section";\n  const t3=document.createElement("div");t3.className="weekTitle";t3.textContent="WEEK 3";sec3.appendChild(t3);\n  const p3=document.createElement("div");p3.className="picks";\n  const w3=(rows[3]||[]).find(p=>key(p.name)===key(name))||{};\n  p3.append(makePick(w3.team1,"",rule.out||rule.allowed<1,false,"NOT PICKED"),makePick(w3.team2,"",rule.out||rule.allowed<2,false,"NOT PICKED"));\n  sec3.appendChild(p3);card.appendChild(sec3);root.appendChild(card);
  }
  $("notice").textContent="WEEKS 1–"+current+" • CURRENT PICKS "+(reveal?"VISIBLE":"HIDDEN")+" • UPDATES AUTOMATICALLY";
 }
@@ -163,7 +163,7 @@ async function load(){
   const currentList=await rpc("get_leaderboard",{})||[];
   const current=Number(currentList[0]?.week_number)||2;
   const rows={1:await rpc("get_leaderboard_for_week",{p_week:1})||[]};
-  rows[current]=current===1?rows[1]:await rpc("get_leaderboard_for_week",{p_week:current})||[];
+  rows[current]=current===1?rows[1]:await rpc("get_leaderboard_for_week",{p_week:current})||[];\n  try{rows[3]=await rpc("get_leaderboard_for_week",{p_week:3})||[]}catch(e){rows[3]=[]}
   let myName="";
   const t=token();if(t){try{const me=await rpc("get_my_info",{p_token:t});if(Array.isArray(me)&&me[0])myName=me[0].name||""}catch(e){}}
   const [live,stored]=await Promise.all([liveResults(),storedResults()]);
