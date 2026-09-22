@@ -164,7 +164,8 @@ async function load(){
   const currentList=await rpc("get_leaderboard",{})||[];
   const current=Number(currentList[0]?.week_number)||2;
   const rows={1:await rpc("get_leaderboard_for_week",{p_week:1})||[]};
-  rows[current]=current===1?rows[1]:await rpc("get_leaderboard_for_week",{p_week:current})||[];\n  try{rows[3]=await rpc("get_leaderboard_for_week",{p_week:3})||[]}catch(e){rows[3]=[]}
+  rows[current]=current===1?rows[1]:await rpc("get_leaderboard_for_week",{p_week:current})||[];
+  try{rows[3]=await rpc("get_leaderboard_for_week",{p_week:3})||[]}catch(e){rows[3]=[]}
   let myName="";
   const t=token();if(t){try{const me=await rpc("get_my_info",{p_token:t});if(Array.isArray(me)&&me[0])myName=me[0].name||""}catch(e){}}
   const [live,stored]=await Promise.all([liveResults(),storedResults()]);
