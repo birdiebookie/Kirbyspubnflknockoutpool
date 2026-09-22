@@ -14,7 +14,7 @@
     "sf": "WIN",
     "san francisco": "WIN"
   },
-  "updated_at": "2026-09-22T02:32:59.661Z",
+  "updated_at": "2026-09-22T03:44:08.180Z",
   "weeks": {
     "1": {
       "broncos": "LOSS",
@@ -117,7 +117,13 @@
       "titans": "LOSS",
       "vikings": "WIN",
       "washington commanders": "LOSS",
-      "wsh": "LOSS"
+      "wsh": "LOSS",
+      "rams": "WIN",
+      "lar": "WIN",
+      "los angeles rams": "WIN",
+      "giants": "LOSS",
+      "nyg": "LOSS",
+      "new york giants": "LOSS"
     }
   }
 }
