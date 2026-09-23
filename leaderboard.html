@@ -101,16 +101,12 @@ function priorRule(name,rows,current){
 function liveStats(rows,current,live,stored,all){
  let out=0,one=0,two=0;
  for(const base of all){
-  const rule=priorRule(base.name,rows,current);
-  if(rule.out){out++;continue}
   const cur=(rows[current]||[]).find(p=>key(p.name)===key(base.name))||{};
-  let remaining=rule.allowed;
-  for(const team of [cur.team1,cur.team2]){
-   if(!team)continue;
-   const r=resultFor(team,live[current]||{})||resultFor(team,stored.weeks?.[String(current)]||{})||"";
-   if(r==="LOSS")remaining=Math.max(0,remaining-1);
-  }
-  if(remaining<=0)out++; else if(remaining===1)one++; else two++;
+  const calc=priorRule(base.name,rows,current);
+  const serverRemaining=Number(cur.picks_remaining);
+  const remaining=Number.isFinite(serverRemaining)?Math.max(0,Math.min(2,serverRemaining)):calc.allowed;
+  if(remaining<=0){out++;continue}
+  if(remaining===1)one++; else two++;
  }
  return {total:all.length,out,one,two};
 }
@@ -137,7 +133,9 @@ function render(rows,current,live,stored,myName){
  $("statTwo").textContent=stats.two;
  const lockTime=(rows[current]||[])[0]?.lock_time; const reveal=lockTime ? new Date(lockTime)<=new Date() : true;
  for(const base of all){
-  const name=base.name,rule=priorRule(name,rows,current),cur=(rows[current]||[]).find(p=>key(p.name)===key(name))||{},w1=(rows[1]||[]).find(p=>key(p.name)===key(name))||{};
+  const name=base.name,calcRule=priorRule(name,rows,current),cur=(rows[current]||[]).find(p=>key(p.name)===key(name))||{},w1=(rows[1]||[]).find(p=>key(p.name)===key(name))||{};
+  const serverRemaining=Number(cur.picks_remaining);
+  const rule=Number.isFinite(serverRemaining)?{allowed:Math.max(0,Math.min(2,serverRemaining)),out:serverRemaining<=0,wins:calcRule.wins}:calcRule;
   const card=document.createElement("div");card.className="player";
   const top=document.createElement("div");top.className="playerTop";
   const nm=document.createElement("div");nm.className="name";nm.textContent=name;
