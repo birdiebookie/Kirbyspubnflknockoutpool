@@ -12,28 +12,24 @@ body{margin:0;background:#fff;color:#000;font-family:Arial,Calibri,sans-serif}
 h1{font-size:28px;margin:0}.sub{font-size:15px;font-weight:800;margin:3px 0 12px}
 .notice{background:#fff200;border:2px solid #111;padding:10px;font-weight:900;margin-bottom:10px}
 .back{display:block;border:2px solid #666;background:#eee;color:#000;text-decoration:none;text-align:center;font-weight:900;padding:11px;margin-bottom:10px}
-.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 12px}
-.stat{border:2px solid #555;text-align:center;padding:8px 4px;background:#eee;font-weight:900}
-.stat b{display:block;font-size:24px;line-height:1.05}.stat span{display:block;font-size:10px;margin-top:3px}
-@media(max-width:520px){.summary{grid-template-columns:repeat(2,1fr)}}
 .tableWrap{width:100%;overflow-x:auto;border:2px solid #555}
-.sheet{width:100%;min-width:900px;border-collapse:collapse;table-layout:fixed}
-.sheet th,.sheet td{border:1px solid #777;padding:0;text-align:center;font-weight:900}
-.sheet thead th{background:#eee;padding:8px}
-.sheet .playerHead{width:18%;text-align:left;padding-left:10px}
-.sheet .weekHead{width:29%}.sheet .statusHead{width:12%}
-.group{font-size:19px;font-weight:900!important;text-align:center!important;padding:10px!important}
-.group.w1{background:#fff200!important}.group.current{background:#70ad47!important}
-.nameCell{text-align:left!important;padding:10px!important;font-size:17px}
-.pickslot{min-height:52px;padding:8px;border-bottom:1px solid #777;background:#fff;display:flex;align-items:center;justify-content:center}
+.sheet{width:100%;min-width:850px;border-collapse:collapse;table-layout:fixed}
+.sheet th,.sheet td{border:2px solid #666;padding:0;text-align:center;font-weight:900}
+.sheet thead th{padding:9px;background:#eee}
+.playerName{width:17%;text-align:left!important;padding:9px!important;font-size:17px}
+.weekHead{background:#70ad47!important;font-size:17px}
+.week1Head{background:#fff200!important}
+.statusHead{width:12%}
+.playerNameCell{text-align:left!important;padding:9px!important;font-size:17px;background:#eee}
+.pickslot{min-height:48px;padding:8px 5px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #777;font-size:16px;line-height:1.05}
 .pickslot:last-child{border-bottom:0}
 .win{background:#fff200!important}.loss{background:#f00!important}.pending{background:#fff!important}
-.statusCell{font-size:15px;padding:8px!important}
-.statusCell.active{background:#70ad47!important}.statusCell.out{background:#f00!important}
-.legend{margin-top:12px;font-size:12px;font-weight:900}
-.legend span{display:inline-block;padding:4px 9px;border:1px solid #777;margin-right:6px}
-.legend .yellow{background:#fff200}.legend .red{background:#f00}.legend .green{background:#70ad47}.legend .white{background:#fff}
-@media(max-width:700px){.tableWrap{overflow-x:auto}.sheet{min-width:900px}}
+.status{padding:9px 5px;font-size:15px}.status.active{background:#70ad47}.status.out{background:#f00}
+.activeRow td{background:#fff}.outRow td{background:#f5f5f5}
+.outRow{opacity:.95}
+.legend{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;font-size:12px;font-weight:900}
+.legend span{border:1px solid #777;padding:4px 8px}.legend .yellow{background:#fff200}.legend .red{background:#f00}.legend .green{background:#70ad47}.legend .white{background:#fff}
+@media(max-width:700px){.wrap{width:99%}.sheet{min-width:760px}.pickslot{font-size:14px}.playerNameCell{font-size:15px}}
 </style>
 </head>
 <body>
@@ -42,14 +38,8 @@ h1{font-size:28px;margin:0}.sub{font-size:15px;font-weight:800;margin:3px 0 12px
 <div class="sub">NFL 2026 • LIVE LEADERBOARD</div>
 <a id="back" class="back" href="./">← BACK TO MY PICKS</a>
 <div id="notice" class="notice">LOADING...</div>
-<div class="summary">
-  <div class="stat"><b id="statTotal">-</b><span>TOTAL PLAYERS</span></div>
-  <div class="stat"><b id="statOut">-</b><span>OUT</span></div>
-  <div class="stat"><b id="statOne">-</b><span>1 PICK LEFT</span></div>
-  <div class="stat"><b id="statTwo">-</b><span>2 PICKS LEFT</span></div>
-</div>
-<div class="legend"><span class="win">WIN</span><span class="loss">LOSS</span><span class="picked">ACTIVE</span><span>NOT PICKED</span></div>
-<div id="players"></div>
+<div class="tableWrap"><table class="sheet"><thead id="head"></thead><tbody id="body"></tbody></table></div>
+<div class="legend"><span class="yellow">WIN</span><span class="red">LOSS</span><span class="green">ACTIVE / PICKS AVAILABLE</span><span class="white">NOT PICKED</span></div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -60,15 +50,18 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const $=id=>document.getElementById(id);
 async function rpc(name,args){const{data,error}=await db.rpc(name,args);if(error)throw error;return data}
 function key(v){return String(v||"").trim().toLowerCase()}
-function token(){const q=new URLSearchParams(location.search);return q.get("token")||new URLSearchParams(location.hash.slice(1)).get("token")||""}
 function clean(v){return String(v||"").replace(/\s+[-+]\d+(?:\.\d+)?\s*$/,"").replace(/\s+/g," ").trim().toLowerCase()}
-function resultFor(team,results){const k=clean(team);if(!k)return"";if(results[k])return results[k];for(const x of Object.keys(results)){const y=clean(x);if(k===y||k.endsWith(" "+y)||y.endsWith(" "+k))return results[x]}return""}
-async function storedResults(){try{const r=await fetch("./nfl-results.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)return{};return await r.json()}catch(e){return{}}}
+function resultFor(team,results){
+ const k=clean(team);if(!k)return"";
+ if(results[k])return results[k];
+ for(const x of Object.keys(results||{})){const y=clean(x);if(k===y||k.endsWith(" "+y)||y.endsWith(" "+k))return results[x]}
+ return"";
+}
 function weekFromDate(s){const d=new Date(s),start=new Date("2026-09-10T00:00:00-04:00");return Math.floor((d-start)/604800000)+1}
 async function liveResults(){
  const out={};
  try{
-  const now=new Date(),from=new Date(now-35*86400000),to=new Date(now+86400000);
+  const now=new Date(),from=new Date(now-40*86400000),to=new Date(now+86400000);
   const fmt=d=>d.toISOString().slice(0,10).replaceAll("-","");
   const r=await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates="+fmt(from)+"-"+fmt(to)+"&limit=1000",{cache:"no-store"});
   if(!r.ok)throw Error();
@@ -78,149 +71,95 @@ async function liveResults(){
    if(!(st.completed||st.state==="post"||String(st.name||"").toUpperCase().includes("FINAL")))continue;
    const c=ev.competitions?.[0]?.competitors||[];if(c.length<2)continue;
    const a=c[0],b=c[1],sa=Number(a.score),sb=Number(b.score);if(!Number.isFinite(sa)||!Number.isFinite(sb)||sa===sb)continue;
-   const w=weekFromDate(ev.date);if(w<1||w>18)continue;if(!out[w])out[w]={};
+   const w=Number(ev.week?.number||ev.competitions?.[0]?.week?.number||weekFromDate(ev.date));if(w<1||w>18)continue;
+   if(!out[w])out[w]={};
    const win=sa>sb?a:b,lose=sa>sb?b:a;
    [win.team?.displayName,win.team?.shortDisplayName,win.team?.name,win.team?.abbreviation].forEach(x=>{if(x)out[w][clean(x)]="WIN"});
    [lose.team?.displayName,lose.team?.shortDisplayName,lose.team?.name,lose.team?.abbreviation].forEach(x=>{if(x)out[w][clean(x)]="LOSS"});
   }
- }catch(e){}
+ }catch(e){console.warn("Live results unavailable",e)}
  return out;
 }
-function priorRule(name,rows,current){
- let failures=0,wins=0;
- for(let w=1;w<current;w++){
-  const allowed=Math.max(0,2-failures); if(allowed===0)break;
-  const p=(rows[w]||[]).find(x=>key(x.name)===key(name))||{};
-  for(const slot of [1,2]){
-   if(slot>allowed)break;
-   const t=slot===1?p.team1:p.team2;
-   const r=String(slot===1?p.team1_result:p.team2_result||"").toUpperCase();
-   if(!t||r==="LOSS")failures++; else if(r==="WIN")wins++;
-  }
- }
- return {allowed:Math.max(0,2-failures),out:failures>=2,wins};
+async function storedResults(){
+ try{const r=await fetch("./nfl-results.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)return{};const j=await r.json();return j.results||j.weeks||j||{}}catch(e){return{}}
 }
-function liveStats(rows,current,live,stored,all){
- let out=0,one=0,two=0;
- for(const base of all){
-  const cur=(rows[current]||[]).find(p=>key(p.name)===key(base.name))||{};
-  const calc=priorRule(base.name,rows,current);
-  const serverRemaining=Number(cur.picks_remaining);
-  const remaining=Number.isFinite(serverRemaining)?Math.max(0,Math.min(2,serverRemaining)):calc.allowed;
-  if(remaining<=0){out++;continue}
-  if(remaining===1)one++; else two++;
- }
- return {total:all.length,out,one,two};
+function pickResult(p,week,live,stored){
+ let r1=String(p?.team1_result||"").toUpperCase(),r2=String(p?.team2_result||"").toUpperCase();
+ const wr=live[week]||{},sr=(stored.weeks&&stored.weeks[String(week)])||stored[String(week)]||stored;
+ if(p?.team1&&!r1)r1=resultFor(p.team1,wr)||resultFor(p.team1,sr);
+ if(p?.team2&&!r2)r2=resultFor(p.team2,wr)||resultFor(p.team2,sr);
+ return [r1,r2];
 }
-function makePick(team,result,dead,hide,placeholder){
- const r=String(result||"").trim().toUpperCase();
- const d=document.createElement("div");d.className="pick empty";
- if(dead){d.className="pick loss";d.innerHTML="<strong>XXX</strong><small>PICK LOST</small>";return d}
- if(hide&&team){d.className="pick picked";d.textContent="PICKED";return d}
- d.textContent=team||placeholder||"NOT PICKED";
- if(r==="WIN")d.className="pick win";
- if(r==="LOSS")d.className="pick loss";
+function makeSlot(team,result,hidden){
+ const d=document.createElement("div");d.className="pickslot pending";
+ if(hidden){d.textContent="NOT PICKED";return d}
+ d.textContent=team||"NOT PICKED";
+ if(result==="WIN")d.className="pickslot win";
+ if(result==="LOSS")d.className="pickslot loss";
  return d;
 }
-function render(rows,current,live,stored,myName){
- const root=$("players");root.innerHTML="";
+function getRule(name,rows,current){
+ let failures=0;
+ for(let w=1;w<current;w++){
+  const p=(rows[w]||[]).find(x=>key(x.name)===key(name))||{};
+  for(const t of [p.team1,p.team2]){
+   if(!t)continue;
+   const r=String((t===p.team1?p.team1_result:p.team2_result)||"").toUpperCase();
+   if(r==="LOSS")failures++;
+  }
+ }
+ const allowed=Math.max(0,2-failures);
+ return {allowed,out:failures>=2};
+}
+function render(rows,current,live,stored){
  const names=new Map();
- (rows[1]||[]).forEach(p=>{if(p.name)names.set(key(p.name),p)});
- (rows[current]||[]).forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),p)});
- const all=[...names.values()].filter(p=>String(p.status||"").toUpperCase()!=="DROPPED");
-
- const enriched=all.map(base=>{
-  const cur=(rows[current]||[]).find(p=>key(p.name)===key(base.name))||{};
-  const ruleServer=Number(cur.picks_remaining);
-  const calc=priorRule(base.name,rows,current);
-  const rule=Number.isFinite(ruleServer)
-    ? {allowed:Math.max(0,Math.min(2,ruleServer)),out:ruleServer<=0,wins:calc.wins}
-    : calc;
-  return {base,cur,rule};
+ Object.values(rows).forEach(list=>(list||[]).forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),p.name)}));
+ const players=[...names.values()];
+ const records=players.map(name=>({name,rule:getRule(name,rows,current)}));
+ records.sort((a,b)=>{
+  if(a.rule.out!==b.rule.out)return a.rule.out?1:-1;
+  if(a.rule.allowed!==b.rule.allowed)return b.rule.allowed-a.rule.allowed;
+  return a.name.localeCompare(b.name);
  });
-
- const active=enriched.filter(x=>!x.rule.out).sort((a,b)=>{
-   if(b.rule.allowed!==a.rule.allowed)return b.rule.allowed-a.rule.allowed;
-   return key(a.base.name).localeCompare(key(b.base.name));
- });
- const out=enriched.filter(x=>x.rule.out).sort((a,b)=>key(a.base.name).localeCompare(key(b.base.name)));
- const ordered=[...active,...out];
-
- let outCount=0,oneCount=0,twoCount=0;
- ordered.forEach(x=>{if(x.rule.out)outCount++;else if(x.rule.allowed===1)oneCount++;else twoCount++});
- $("statTotal").textContent=ordered.length;
- $("statOut").textContent=outCount;
- $("statOne").textContent=oneCount;
- $("statTwo").textContent=twoCount;
-
- const tableWrap=document.createElement("div");tableWrap.className="tableWrap";
- const table=document.createElement("table");table.className="sheet";
- const thead=document.createElement("thead");
- const h1=document.createElement("tr");
- h1.innerHTML='<th class="group w1 playerHead" rowspan="2">PLAYER</th><th class="group w1 weekHead" colspan="1">WEEK 1 • RESULTS</th><th class="group w1 statusHead" rowspan="2">STATUS</th><th class="group current weekHead" colspan="1">WEEK '+current+' • PICKS</th><th class="group current statusHead" rowspan="2">STATUS</th>';
- thead.appendChild(h1);
- const h2=document.createElement("tr");
- h2.innerHTML='<th>WEEK 1 PICKS</th><th>WEEK '+current+' PICKS</th>';
- thead.appendChild(h2);
- table.appendChild(thead);
-
- const body=document.createElement("tbody");
- const rows1=new Map((rows[1]||[]).map(p=>[key(p.name),p]));
- const rowsC=new Map((rows[current]||[]).map(p=>[key(p.name),p]));
-
- ordered.forEach(x=>{
-   const base=x.base,cur=rowsC.get(key(base.name))||x.cur,w1=rows1.get(key(base.name))||{};
-   const tr=document.createElement("tr");
-
-   const name=document.createElement("td");name.className="nameCell";name.textContent=base.name;tr.appendChild(name);
-
-   const week1=document.createElement("td");
-   const r11=resultFor(w1.team1,live[1]||{})||resultFor(w1.team1,stored.weeks?.["1"]||stored.results||{})||String(w1.team1_result||"").toUpperCase();
-   const r12=resultFor(w1.team2,live[1]||{})||resultFor(w1.team2,stored.weeks?.["1"]||stored.results||{})||String(w1.team2_result||"").toUpperCase();
-   week1.append(makePick(w1.team1,r11,false,false,"NOT PICKED"),makePick(w1.team2,r12,false,false,"NOT PICKED"));
-   tr.appendChild(week1);
-
-   const s1=document.createElement("td");s1.className="statusCell "+(x.rule.out?"out":"active");s1.textContent=x.rule.out?"OUT":(x.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");tr.appendChild(s1);
-
-   const currentCell=document.createElement("td");
-   const teams=[];
-   if(x.rule.allowed>=1){
-     if(cur.team1)teams.push({team:cur.team1,result:String(cur.team1_result||"").toUpperCase()});
-     else if(cur.team2)teams.push({team:cur.team2,result:String(cur.team2_result||"").toUpperCase()});
-   }
-   if(x.rule.allowed>=2 && cur.team2 && cur.team1)teams.push({team:cur.team2,result:String(cur.team2_result||"").toUpperCase()});
-
-   if(x.rule.out){
-     const d=document.createElement("div");d.className="pickslot loss";d.innerHTML="<strong>OUT</strong>";currentCell.appendChild(d);
-   }else{
-     const r1=teams[0]||null;
-     const r2=teams[1]||null;
-     currentCell.append(makePick(r1?.team,r1?.result,false,false,"NOT PICKED"));
-     if(x.rule.allowed>=2)currentCell.append(makePick(r2?.team,r2?.result,false,false,"NOT PICKED"));
-   }
-   tr.appendChild(currentCell);
-
-   const s2=document.createElement("td");s2.className="statusCell "+(x.rule.out?"out":"active");
-   s2.textContent=x.rule.out?"OUT":(x.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");tr.appendChild(s2);
-
-   body.appendChild(tr);
- });
- table.appendChild(body);tableWrap.appendChild(table);root.appendChild(tableWrap);
+ const h=document.createElement("tr");
+ const n=document.createElement("th");n.className="playerName";n.textContent="PLAYER";h.appendChild(n);
+ for(let w=1;w<=current;w++){const th=document.createElement("th");th.className="weekHead "+(w===1?"week1Head":"");th.textContent="WEEK "+w;h.appendChild(th)}
+ const st=document.createElement("th");st.className="statusHead";st.textContent="STATUS";h.appendChild(st);
+ $("head").innerHTML="";$("head").appendChild(h);
+ const body=$("body");body.innerHTML="";
+ for(const rec of records){
+  const tr=document.createElement("tr");tr.className=rec.rule.out?"outRow":"activeRow";
+  const nm=document.createElement("td");nm.className="playerNameCell";nm.textContent=rec.name;tr.appendChild(nm);
+  for(let w=1;w<=current;w++){
+   const p=(rows[w]||[]).find(x=>key(x.name)===key(rec.name))||{};
+   const [r1,r2]=pickResult(p,w,live,stored);
+   const td=document.createElement("td");
+   const isCurrent=w===current;
+   const hideCurrent=!rec.rule.out && isCurrent;
+   td.appendChild(makeSlot(p.team1,r1,false));
+   td.appendChild(makeSlot(p.team2,r2,false));
+   if(isCurrent && rec.rule.out){td.innerHTML="";td.appendChild(makeSlot("", "", true));td.appendChild(makeSlot("", "", true))}
+   tr.appendChild(td);
+  }
+  const s=document.createElement("td");s.className="status "+(rec.rule.out?"out":"active");
+  s.textContent=rec.rule.out?"OUT":(rec.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");
+  tr.appendChild(s);body.appendChild(tr);
+ }
+ $("notice").textContent="WEEKS 1–"+current+" • ACTIVE PLAYERS FIRST • OUT PLAYERS AT BOTTOM • PICKS SIDE-BY-SIDE";
 }
 async function load(){
  try{
-  const currentList=await rpc("get_leaderboard",{})||[];
-  const current=Number(currentList[0]?.week_number)||2;
-  const rows={1:await rpc("get_leaderboard_for_week",{p_week:1})||[]};
-  rows[current]=current===1?rows[1]:await rpc("get_leaderboard_for_week",{p_week:current})||[];
-  try{rows[3]=await rpc("get_leaderboard_for_week",{p_week:3})||[]}catch(e){rows[3]=[]}
-  let myName="";
-  const t=token();if(t){try{const me=await rpc("get_my_info",{p_token:t});if(Array.isArray(me)&&me[0])myName=me[0].name||""}catch(e){}}
+  const currentPlayers=await rpc("get_leaderboard",{})||[];
+  const {data:weekData,error}=await db.from("weeks").select("week_number").order("week_number",{ascending:false});
+  if(error)throw error;
+  const current=Number(weekData?.[0]?.week_number)||3;
+  const rows={};
+  for(let w=1;w<=current;w++)rows[w]=await rpc("get_leaderboard_for_week",{p_week:w})||[];
   const [live,stored]=await Promise.all([liveResults(),storedResults()]);
-  render(rows,current,live,stored,myName);
- }catch(e){$("notice").textContent="COULD NOT LOAD LEADERBOARD";console.error(e)}
+  render(rows,current,live,stored);
+ }catch(e){console.error(e);$("notice").textContent="COULD NOT LOAD LEADERBOARD: "+(e.message||"");}
 }
-const t=token();if(t)$("back").href="./?token="+encodeURIComponent(t);
+const q=new URLSearchParams(location.search),t=q.get("token")||new URLSearchParams(location.hash.slice(1)).get("token");if(t)$("back").href="./?token="+encodeURIComponent(t);
 load();setInterval(load,30000);
 </script>
 </body>
