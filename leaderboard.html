@@ -115,7 +115,7 @@ function render(rows,current,live,stored){
  const names=new Map();
  Object.values(rows).forEach(list=>(list||[]).forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),p.name)}));
  const players=[...names.values()];
- const records=players.map(name=>({name,rule:getRule(name,rows,current)}));
+ const records=players.map(name=>({name,rule:getRule(name,rows,current,live,stored)}));
  records.sort((a,b)=>{
   if(a.rule.out!==b.rule.out)return a.rule.out?1:-1;
   if(a.rule.allowed!==b.rule.allowed)return b.rule.allowed-a.rule.allowed;
