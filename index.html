@@ -40,7 +40,7 @@ $("saveBtn").onclick=async()=>{try{
  await loadMe();await loadPickAllowance();
  const picksAllowed=Math.max(0,Math.min(2,Number(allowedPicks)));
  const pick1El=$("pick1"),pick2El=$("pick2");
- const a=pick1El?String(pick1El.value||""):"",b=pick2El?String(pick2El.value||"):"";
+ const a=pick1El?String(pick1El.value||""):"",b=pick2El?String(pick2El.value||""):"";
  if(picksAllowed===0){$("entryMsg").textContent="You have no picks remaining this week.";return}
  if(!a){$("entryMsg").textContent=picksAllowed===1?"Please choose your one remaining team.":"Please choose both teams.";return}
  if(picksAllowed===2&&!b){$("entryMsg").textContent="Please choose both teams.";return}
