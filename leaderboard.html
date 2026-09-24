@@ -48,6 +48,9 @@ const SUPABASE_URL="https://rkyupmpnsjjgditslpiz.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_hicUgD5WOhRlbPtwMzkaqQ_WktOF7qL";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const $=id=>document.getElementById(id);
+let myInfo=null;
+function tokenFromUrl(){const q=new URLSearchParams(location.search);return q.get("token")||new URLSearchParams(location.hash.slice(1)).get("token")||""}
+async function loadMe(){const token=tokenFromUrl();if(!token){myInfo=null;return}try{const rows=await rpc("get_my_info",{p_token:token});myInfo=Array.isArray(rows)&&rows.length?rows[0]:null}catch(e){myInfo=null}}
 async function rpc(name,args){const{data,error}=await db.rpc(name,args);if(error)throw error;return data}
 function key(v){return String(v||"").trim().toLowerCase()}
 function clean(v){return String(v||"").replace(/\s+[-+]\d+(?:\.\d+)?\s*$/,"").replace(/\s+/g," ").trim().toLowerCase()}
@@ -134,8 +137,9 @@ function render(rows,current,live,stored){
    const td=document.createElement("td");
    const isCurrent=w===current;
    const hideCurrent=!rec.rule.out && isCurrent;
-   td.appendChild(makeSlot(p.team1,r1,false));
-   td.appendChild(makeSlot(p.team2,r2,false));
+   const hideCurrent=!rec.rule.out && isCurrent && (!myInfo || key(rec.name)!==key(myInfo.name));
+   td.appendChild(makeSlot(p.team1,r1,hideCurrent));
+   td.appendChild(makeSlot(p.team2,r2,hideCurrent));
    if(isCurrent && rec.rule.out){td.innerHTML="";td.appendChild(makeSlot("", "", true));td.appendChild(makeSlot("", "", true))}
    tr.appendChild(td);
   }
@@ -147,6 +151,7 @@ function render(rows,current,live,stored){
 }
 async function load(){
  try{
+  await loadMe();
   const currentPlayers=await rpc("get_leaderboard",{})||[];
   const {data:weekData,error}=await db.from("weeks").select("week_number").order("week_number",{ascending:false});
   if(error)throw error;
