@@ -8,30 +8,32 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#fff;color:#000;font-family:Arial,Calibri,sans-serif}
-.wrap{width:98%;max-width:900px;margin:14px auto 30px}
+.wrap{width:98%;max-width:1200px;margin:14px auto 30px}
 h1{font-size:28px;margin:0}.sub{font-size:15px;font-weight:800;margin:3px 0 12px}
 .notice{background:#fff200;border:2px solid #111;padding:10px;font-weight:900;margin-bottom:10px}
+.back{display:block;border:2px solid #666;background:#eee;color:#000;text-decoration:none;text-align:center;font-weight:900;padding:11px;margin-bottom:10px}
 .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 12px}
 .stat{border:2px solid #555;text-align:center;padding:8px 4px;background:#eee;font-weight:900}
 .stat b{display:block;font-size:24px;line-height:1.05}.stat span{display:block;font-size:10px;margin-top:3px}
 @media(max-width:520px){.summary{grid-template-columns:repeat(2,1fr)}}
-.back{display:block;border:2px solid #666;background:#eee;color:#000;text-decoration:none;text-align:center;font-weight:900;padding:11px;margin-bottom:10px}
-.legend{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;font-size:12px;font-weight:900}
-.legend span{border:1px solid #777;padding:4px 8px}.win{background:#fff200!important}.loss{background:#f00!important}.picked{background:#70ad47!important}
-.player{border:2px solid #555;margin:10px 0;background:#fff}
-.playerTop{display:flex;justify-content:space-between;align-items:center;background:#eee;border-bottom:2px solid #555;padding:9px 10px}
-.name{font-size:18px;font-weight:900}.status{font-size:13px;font-weight:900;padding:5px 7px;border:1px solid #555;background:#fff}
-.status.out{background:#f00}.status.active{background:#70ad47}
-.weekTitle{font-size:15px;font-weight:900;padding:7px 9px;border-bottom:1px solid #777}
-.weekTitle.w1{background:#fff200}.weekTitle.w2{background:#70ad47}
-.picks{display:grid;grid-template-columns:1fr 1fr}
-.pick{min-height:58px;border-right:1px solid #777;border-bottom:1px solid #777;display:flex;align-items:center;justify-content:center;text-align:center;padding:7px;font-size:17px;font-weight:900}
-.pick:nth-child(2n){border-right:0}
-.pick small{display:block;font-size:10px}
-.section{border-bottom:2px solid #555}
-.section:last-child{border-bottom:0}
-.empty{background:#fff!important}.pick.win{background:#fff200!important}.pick.loss{background:#f00!important}
-@media(min-width:700px){.player{display:grid;grid-template-columns:170px 1fr 1fr}.playerTop{grid-row:1 / span 2;display:block;border-right:2px solid #555;border-bottom:0}.status{margin-top:8px;text-align:center}.section{border-bottom:0;border-right:2px solid #555}.section:last-child{border-right:0}}
+.tableWrap{width:100%;overflow-x:auto;border:2px solid #555}
+.sheet{width:100%;min-width:900px;border-collapse:collapse;table-layout:fixed}
+.sheet th,.sheet td{border:1px solid #777;padding:0;text-align:center;font-weight:900}
+.sheet thead th{background:#eee;padding:8px}
+.sheet .playerHead{width:18%;text-align:left;padding-left:10px}
+.sheet .weekHead{width:29%}.sheet .statusHead{width:12%}
+.group{font-size:19px;font-weight:900!important;text-align:center!important;padding:10px!important}
+.group.w1{background:#fff200!important}.group.current{background:#70ad47!important}
+.nameCell{text-align:left!important;padding:10px!important;font-size:17px}
+.pickslot{min-height:52px;padding:8px;border-bottom:1px solid #777;background:#fff;display:flex;align-items:center;justify-content:center}
+.pickslot:last-child{border-bottom:0}
+.win{background:#fff200!important}.loss{background:#f00!important}.pending{background:#fff!important}
+.statusCell{font-size:15px;padding:8px!important}
+.statusCell.active{background:#70ad47!important}.statusCell.out{background:#f00!important}
+.legend{margin-top:12px;font-size:12px;font-weight:900}
+.legend span{display:inline-block;padding:4px 9px;border:1px solid #777;margin-right:6px}
+.legend .yellow{background:#fff200}.legend .red{background:#f00}.legend .green{background:#70ad47}.legend .white{background:#fff}
+@media(max-width:700px){.tableWrap{overflow-x:auto}.sheet{min-width:900px}}
 </style>
 </head>
 <body>
@@ -46,7 +48,7 @@ h1{font-size:28px;margin:0}.sub{font-size:15px;font-weight:800;margin:3px 0 12px
   <div class="stat"><b id="statOne">-</b><span>1 PICK LEFT</span></div>
   <div class="stat"><b id="statTwo">-</b><span>2 PICKS LEFT</span></div>
 </div>
-<div class="legend"><span class="win">WIN</span><span class="loss">LOSS / XXX</span><span class="picked">PICKED</span><span>NOT PICKED</span></div>
+<div class="legend"><span class="win">WIN</span><span class="loss">LOSS</span><span class="picked">ACTIVE</span><span>NOT PICKED</span></div>
 <div id="players"></div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -123,45 +125,87 @@ function makePick(team,result,dead,hide,placeholder){
 function render(rows,current,live,stored,myName){
  const root=$("players");root.innerHTML="";
  const names=new Map();
- (rows[current]||[]).forEach(p=>{if(p.name)names.set(key(p.name),p)});
- (rows[1]||[]).forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),p)});
+ (rows[1]||[]).forEach(p=>{if(p.name)names.set(key(p.name),p)});
+ (rows[current]||[]).forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),p)});
  const all=[...names.values()].filter(p=>String(p.status||"").toUpperCase()!=="DROPPED");
- const stats=liveStats(rows,current,live,stored,all);
- $("statTotal").textContent=stats.total;
- $("statOut").textContent=stats.out;
- $("statOne").textContent=stats.one;
- $("statTwo").textContent=stats.two;
- const lockTime=(rows[current]||[])[0]?.lock_time; const reveal=lockTime ? new Date(lockTime)<=new Date() : true;
- for(const base of all){
-  const name=base.name,calcRule=priorRule(name,rows,current),cur=(rows[current]||[]).find(p=>key(p.name)===key(name))||{},w1=(rows[1]||[]).find(p=>key(p.name)===key(name))||{};
-  const serverRemaining=Number(cur.picks_remaining);
-  const rule=Number.isFinite(serverRemaining)?{allowed:Math.max(0,Math.min(2,serverRemaining)),out:serverRemaining<=0,wins:calcRule.wins}:calcRule;
-  const card=document.createElement("div");card.className="player";
-  const top=document.createElement("div");top.className="playerTop";
-  const nm=document.createElement("div");nm.className="name";nm.textContent=name;
-  const st=document.createElement("div");st.className="status "+(rule.out?"out":"active");
-  const made=!!(cur.team1||cur.team2);st.textContent=rule.out?"OUT":made?(rule.allowed===1?"1 PICK MADE":"2 PICKS MADE"):"NOT PICKED";
-  top.append(nm,st);card.appendChild(top);
-  const sec1=document.createElement("div");sec1.className="section";
-  const t1=document.createElement("div");t1.className="weekTitle w1";t1.textContent="WEEK 1";sec1.appendChild(t1);
-  const p1=document.createElement("div");p1.className="picks";
-  const r11=resultFor(w1.team1,live[1]||{})||resultFor(w1.team1,stored.weeks?.["1"]||stored.results||{})||String(w1.team1_result||"").toUpperCase();
-  const r12=resultFor(w1.team2,live[1]||{})||resultFor(w1.team2,stored.weeks?.["1"]||stored.results||{})||String(w1.team2_result||"").toUpperCase();
-  p1.append(makePick(w1.team1,r11,false,false),makePick(w1.team2,r12,false,false));sec1.appendChild(p1);card.appendChild(sec1);
-  const sec2=document.createElement("div");sec2.className="section";
-  const t2=document.createElement("div");t2.className="weekTitle w2";t2.textContent="WEEK "+current;sec2.appendChild(t2);
-  const p2=document.createElement("div");p2.className="picks";
-  const dead1=rule.out&&!cur.team1,dead2=rule.out&&!cur.team2;
-  const r21=String(cur.team1_result||"").toUpperCase()||resultFor(cur.team1,stored.weeks?.[String(current)]||{})||resultFor(cur.team1,live[current]||{})||""; const r22=String(cur.team2_result||"").toUpperCase()||resultFor(cur.team2,stored.weeks?.[String(current)]||{})||resultFor(cur.team2,live[current]||{})||""; p2.append(makePick(cur.team1,r21,dead1,false,"NOT PICKED"),makePick(cur.team2,r22,dead2,false,"NOT PICKED"));
-  sec2.appendChild(p2);card.appendChild(sec2);
-  const sec3=document.createElement("div");sec3.className="section";
-  const t3=document.createElement("div");t3.className="weekTitle";t3.textContent="WEEK 3";sec3.appendChild(t3);
-  const p3=document.createElement("div");p3.className="picks";
-  const w3=(rows[3]||[]).find(p=>key(p.name)===key(name))||{};
-  p3.append(makePick(w3.team1,"",rule.out||rule.allowed<1,false,"NOT PICKED"),makePick(w3.team2,"",rule.out||rule.allowed<2,false,"NOT PICKED"));
-  sec3.appendChild(p3);card.appendChild(sec3);root.appendChild(card);
- }
- $("notice").textContent="WEEKS 1–"+current+" • CURRENT PICKS "+(reveal?"VISIBLE":"HIDDEN")+" • UPDATES AUTOMATICALLY";
+
+ const enriched=all.map(base=>{
+  const cur=(rows[current]||[]).find(p=>key(p.name)===key(base.name))||{};
+  const ruleServer=Number(cur.picks_remaining);
+  const calc=priorRule(base.name,rows,current);
+  const rule=Number.isFinite(ruleServer)
+    ? {allowed:Math.max(0,Math.min(2,ruleServer)),out:ruleServer<=0,wins:calc.wins}
+    : calc;
+  return {base,cur,rule};
+ });
+
+ const active=enriched.filter(x=>!x.rule.out).sort((a,b)=>{
+   if(b.rule.allowed!==a.rule.allowed)return b.rule.allowed-a.rule.allowed;
+   return key(a.base.name).localeCompare(key(b.base.name));
+ });
+ const out=enriched.filter(x=>x.rule.out).sort((a,b)=>key(a.base.name).localeCompare(key(b.base.name)));
+ const ordered=[...active,...out];
+
+ let outCount=0,oneCount=0,twoCount=0;
+ ordered.forEach(x=>{if(x.rule.out)outCount++;else if(x.rule.allowed===1)oneCount++;else twoCount++});
+ $("statTotal").textContent=ordered.length;
+ $("statOut").textContent=outCount;
+ $("statOne").textContent=oneCount;
+ $("statTwo").textContent=twoCount;
+
+ const tableWrap=document.createElement("div");tableWrap.className="tableWrap";
+ const table=document.createElement("table");table.className="sheet";
+ const thead=document.createElement("thead");
+ const h1=document.createElement("tr");
+ h1.innerHTML='<th class="group w1 playerHead" rowspan="2">PLAYER</th><th class="group w1 weekHead" colspan="1">WEEK 1 • RESULTS</th><th class="group w1 statusHead" rowspan="2">STATUS</th><th class="group current weekHead" colspan="1">WEEK '+current+' • PICKS</th><th class="group current statusHead" rowspan="2">STATUS</th>';
+ thead.appendChild(h1);
+ const h2=document.createElement("tr");
+ h2.innerHTML='<th>WEEK 1 PICKS</th><th>WEEK '+current+' PICKS</th>';
+ thead.appendChild(h2);
+ table.appendChild(thead);
+
+ const body=document.createElement("tbody");
+ const rows1=new Map((rows[1]||[]).map(p=>[key(p.name),p]));
+ const rowsC=new Map((rows[current]||[]).map(p=>[key(p.name),p]));
+
+ ordered.forEach(x=>{
+   const base=x.base,cur=rowsC.get(key(base.name))||x.cur,w1=rows1.get(key(base.name))||{};
+   const tr=document.createElement("tr");
+
+   const name=document.createElement("td");name.className="nameCell";name.textContent=base.name;tr.appendChild(name);
+
+   const week1=document.createElement("td");
+   const r11=resultFor(w1.team1,live[1]||{})||resultFor(w1.team1,stored.weeks?.["1"]||stored.results||{})||String(w1.team1_result||"").toUpperCase();
+   const r12=resultFor(w1.team2,live[1]||{})||resultFor(w1.team2,stored.weeks?.["1"]||stored.results||{})||String(w1.team2_result||"").toUpperCase();
+   week1.append(makePick(w1.team1,r11,false,false,"NOT PICKED"),makePick(w1.team2,r12,false,false,"NOT PICKED"));
+   tr.appendChild(week1);
+
+   const s1=document.createElement("td");s1.className="statusCell "+(x.rule.out?"out":"active");s1.textContent=x.rule.out?"OUT":(x.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");tr.appendChild(s1);
+
+   const currentCell=document.createElement("td");
+   const teams=[];
+   if(x.rule.allowed>=1){
+     if(cur.team1)teams.push({team:cur.team1,result:String(cur.team1_result||"").toUpperCase()});
+     else if(cur.team2)teams.push({team:cur.team2,result:String(cur.team2_result||"").toUpperCase()});
+   }
+   if(x.rule.allowed>=2 && cur.team2 && cur.team1)teams.push({team:cur.team2,result:String(cur.team2_result||"").toUpperCase()});
+
+   if(x.rule.out){
+     const d=document.createElement("div");d.className="pickslot loss";d.innerHTML="<strong>OUT</strong>";currentCell.appendChild(d);
+   }else{
+     const r1=teams[0]||null;
+     const r2=teams[1]||null;
+     currentCell.append(makePick(r1?.team,r1?.result,false,false,"NOT PICKED"));
+     if(x.rule.allowed>=2)currentCell.append(makePick(r2?.team,r2?.result,false,false,"NOT PICKED"));
+   }
+   tr.appendChild(currentCell);
+
+   const s2=document.createElement("td");s2.className="statusCell "+(x.rule.out?"out":"active");
+   s2.textContent=x.rule.out?"OUT":(x.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");tr.appendChild(s2);
+
+   body.appendChild(tr);
+ });
+ table.appendChild(body);tableWrap.appendChild(table);root.appendChild(tableWrap);
 }
 async function load(){
  try{
