@@ -136,7 +136,6 @@ function render(rows,current,live,stored){
    const [r1,r2]=pickResult(p,w,live,stored);
    const td=document.createElement("td");
    const isCurrent=w===current;
-   const hideCurrent=!rec.rule.out && isCurrent;
    const hideCurrent=!rec.rule.out && isCurrent && (!myInfo || key(rec.name)!==key(myInfo.name));
    const firstSlot=makeSlot(p.team1,r1,hideCurrent);
    // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
