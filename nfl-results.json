@@ -97,7 +97,7 @@
     "washington commanders": "LOSS",
     "wsh": "LOSS"
   },
-  "updated_at": "2026-09-25T01:44:25.849090+00:00",
+  "updated_at": "2026-09-25T06:42:07.186006+00:00",
   "weeks": {
     "1": {
       "49ers": "WIN",
@@ -294,6 +294,14 @@
       "vikings": "WIN",
       "washington commanders": "LOSS",
       "wsh": "LOSS"
+    },
+    "3": {
+      "atl": "WIN",
+      "atlanta falcons": "WIN",
+      "falcons": "WIN",
+      "gb": "LOSS",
+      "green bay packers": "LOSS",
+      "packers": "LOSS"
     }
   }
 }
