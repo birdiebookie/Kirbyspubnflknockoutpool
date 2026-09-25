@@ -138,7 +138,11 @@ function render(rows,current,live,stored){
    const isCurrent=w===current;
    const hideCurrent=!rec.rule.out && isCurrent;
    const hideCurrent=!rec.rule.out && isCurrent && (!myInfo || key(rec.name)!==key(myInfo.name));
-   td.appendChild(makeSlot(p.team1,r1,hideCurrent));
+   const firstSlot=makeSlot(p.team1,r1,hideCurrent);
+   // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
+   // Do not affect Week 1, Week 3, Week 2 second slot, or any pick/result logic.
+   if(w===2 && !isCurrent && !p.team1)firstSlot.className="pickslot loss";
+   td.appendChild(firstSlot);
    td.appendChild(makeSlot(p.team2,r2,hideCurrent));
    if(isCurrent && rec.rule.out){td.innerHTML="";td.appendChild(makeSlot("", "", true));td.appendChild(makeSlot("", "", true))}
    tr.appendChild(td);
