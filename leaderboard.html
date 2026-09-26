@@ -126,11 +126,17 @@ function render(rows,current,live,stored,currentPlayers){
   // This is display/order logic only; historical picks remain untouched.
   return {name,rule,storedStatus,isOut:storedStatus==="OUT"||storedStatus==="DROPPED"||rule.out};
  });
- records.sort((a,b)=>{
-  if(a.isOut!==b.isOut)return a.isOut?1:-1;
+ // Keep every OUT/DROPPED player together at the very bottom.
+ // This is display ordering only — it does not change picks, results, or status.
+ const activeRecords=records.filter(r=>!r.isOut);
+ const outRecords=records.filter(r=>r.isOut);
+ activeRecords.sort((a,b)=>{
   if(a.rule.allowed!==b.rule.allowed)return b.rule.allowed-a.rule.allowed;
   return a.name.localeCompare(b.name);
  });
+ outRecords.sort((a,b)=>a.name.localeCompare(b.name));
+ records.length=0;
+ records.push(...activeRecords,...outRecords);
  const h=document.createElement("tr");
  const n=document.createElement("th");n.className="playerName";n.textContent="PLAYER";h.appendChild(n);
  for(let w=1;w<=current;w++){const th=document.createElement("th");th.className="weekHead "+(w===1?"week1Head":"");th.textContent="WEEK "+w;h.appendChild(th)}
