@@ -13,16 +13,18 @@ h1{font-size:28px;margin:0}.sub{font-size:15px;font-weight:800;margin:3px 0 12px
 .notice{background:#fff200;border:2px solid #111;padding:10px;font-weight:900;margin-bottom:10px}
 .back{display:block;border:2px solid #666;background:#eee;color:#000;text-decoration:none;text-align:center;font-weight:900;padding:11px;margin-bottom:10px}
 .tableWrap{width:100%;overflow-x:auto;border:2px solid #555}
-.sheet{width:100%;min-width:850px;border-collapse:collapse;table-layout:fixed}
+.sheet{width:100%;min-width:760px;border-collapse:collapse;table-layout:fixed}
 .sheet th,.sheet td{border:2px solid #666;padding:0;text-align:center;font-weight:900}
 .sheet thead th{padding:9px;background:#eee}
-.playerName{width:17%;text-align:left!important;padding:9px!important;font-size:17px}
+.playerName{width:18%;text-align:left!important;padding:9px!important;font-size:17px}
 .weekHead{background:#70ad47!important;font-size:17px}
 .week1Head{background:#fff200!important}
-.statusHead{width:12%}
+.statusHead{width:13%}
 .playerNameCell{text-align:left!important;padding:9px!important;font-size:17px;background:#eee}
+.weekCell{padding:0!important;vertical-align:middle}
 .pickslot{min-height:48px;padding:8px 5px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #777;font-size:16px;line-height:1.05}
 .pickslot:last-child{border-bottom:0}
+.weekStack{display:block;width:100%}
 .win{background:#fff200!important}.loss{background:#f00!important}.pending{background:#fff!important}
 .status{padding:9px 5px;font-size:15px}.status.active{background:#70ad47}.status.out{background:#f00}
 .activeRow td{background:#fff}.outRow td{background:#f5f5f5}
@@ -134,16 +136,22 @@ function render(rows,current,live,stored){
   for(let w=1;w<=current;w++){
    const p=(rows[w]||[]).find(x=>key(x.name)===key(rec.name))||{};
    const [r1,r2]=pickResult(p,w,live,stored);
-   const td=document.createElement("td");
+   const td=document.createElement("td");td.className="weekCell";
+   const stack=document.createElement("div");stack.className="weekStack";
    const isCurrent=w===current;
    const hideCurrent=!rec.rule.out && isCurrent && (!myInfo || key(rec.name)!==key(myInfo.name));
    const firstSlot=makeSlot(p.team1,r1,hideCurrent);
    // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
    // Do not affect Week 1, Week 3, Week 2 second slot, or any pick/result logic.
    if(w===2 && !isCurrent && !p.team1)firstSlot.className="pickslot loss";
-   td.appendChild(firstSlot);
-   td.appendChild(makeSlot(p.team2,r2,hideCurrent));
-   if(isCurrent && rec.rule.out){td.innerHTML="";td.appendChild(makeSlot("", "", true));td.appendChild(makeSlot("", "", true))}
+   stack.appendChild(firstSlot);
+   stack.appendChild(makeSlot(p.team2,r2,hideCurrent));
+   if(isCurrent && rec.rule.out){
+     stack.innerHTML="";
+     stack.appendChild(makeSlot("", "", true));
+     stack.appendChild(makeSlot("", "", true));
+   }
+   td.appendChild(stack);
    tr.appendChild(td);
   }
   const s=document.createElement("td");s.className="status "+(rec.rule.out?"out":"active");
