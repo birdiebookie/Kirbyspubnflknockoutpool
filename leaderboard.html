@@ -106,13 +106,14 @@ function makeSlot(team,result,hidden){
 function getRule(name,rows,current,live,stored){
  let failures=0;
  for(let w=1;w<current;w++){
+  if(failures>=2)break;
   const p=(rows[w]||[]).find(x=>key(x.name)===key(name))||{};
+  const allowed=Math.max(0,2-failures);
   const [r1,r2]=pickResult(p,w,live,stored);
-  if(p.team1&&r1==="LOSS")failures++;
-  if(p.team2&&r2==="LOSS")failures++;
+  if(allowed>=1){if(!p.team1||r1==="LOSS")failures++}
+  if(allowed>=2){if(!p.team2||r2==="LOSS")failures++}
  }
- const allowed=Math.max(0,2-failures);
- return {allowed,out:failures>=2};
+ return {allowed:Math.max(0,Math.min(2,2-failures)),out:failures>=2};
 }
 function render(rows,current,live,stored,currentPlayers){
  const names=new Map();
