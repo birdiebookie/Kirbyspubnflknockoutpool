@@ -24,7 +24,7 @@ h1{font-size:28px;margin:0}.sub{font-size:15px;font-weight:800;margin:3px 0 12px
 .weekCell{padding:0!important;vertical-align:middle}
 .pickslot{min-height:48px;padding:8px 5px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #777;font-size:16px;line-height:1.05}
 .pickslot:last-child{border-bottom:0}
-.weekStack{display:block;width:100%}
+.weekStack{display:grid;width:100%;grid-template-rows:48px 48px}
 .win{background:#fff200!important}.loss{background:#f00!important}.pending{background:#fff!important}
 .status{padding:9px 5px;font-size:15px}.status.active{background:#70ad47}.status.out{background:#f00}
 .activeRow td{background:#fff}.outRow td{background:#f5f5f5}
@@ -144,8 +144,34 @@ function render(rows,current,live,stored){
    // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
    // Do not affect Week 1, Week 3, Week 2 second slot, or any pick/result logic.
    if(w===2 && !isCurrent && !p.team1)firstSlot.className="pickslot loss";
-   stack.appendChild(firstSlot);
-   stack.appendChild(makeSlot(p.team2,r2,hideCurrent));
+
+   // DISPLAY ONLY: when a player has one pick left, place the current week's
+   // actual pick in the same visual row as the surviving prior-week winner.
+   // The underlying slot/team data is NOT changed.
+   if(isCurrent && rec.rule.allowed===1 && !rec.rule.out){
+     let survivorRow=1;
+     const prior=(rows[w-1]||[]).find(x=>key(x.name)===key(rec.name))||{};
+     const [pr1,pr2]=pickResult(prior,w-1,live,stored);
+     if(pr1==="WIN")survivorRow=1;
+     else if(pr2==="WIN")survivorRow=2;
+     firstSlot.style.gridRow=String(survivorRow);
+     firstSlot.style.gridColumn="1";
+     const spacer=document.createElement("div");
+     spacer.className="pickslot pending";
+     spacer.textContent="NOT PICKED";
+     spacer.style.gridRow=String(survivorRow===1?2:1);
+     spacer.style.gridColumn="1";
+     stack.appendChild(firstSlot);
+     stack.appendChild(spacer);
+   }else{
+     firstSlot.style.gridRow="1";
+     firstSlot.style.gridColumn="1";
+     const secondSlot=makeSlot(p.team2,r2,hideCurrent);
+     secondSlot.style.gridRow="2";
+     secondSlot.style.gridColumn="1";
+     stack.appendChild(firstSlot);
+     stack.appendChild(secondSlot);
+   }
    if(isCurrent && rec.rule.out){
      stack.innerHTML="";
      stack.appendChild(makeSlot("", "", true));
