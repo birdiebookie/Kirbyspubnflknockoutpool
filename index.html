@@ -53,7 +53,7 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        else if(result==="WIN")cell.classList.add("win");
        else if(result==="LOSS")cell.classList.add("loss");
        if(!eliminated&&isCurrent&&!isMine&&value){cell.classList.remove("win","loss");cell.classList.add("picked");cell.textContent="PICKED";}
-       else if(!eliminated&&isCurrent&&isMine&&!deadSlot){cell.classList.add("selectCell");const used=new Set(myInfo.used_teams||[]);const sel=makeSelect(value,myInfo.team2,used,true,result);sel.addEventListener("change",()=>{myInfo.team1=sel.value});cell.appendChild(sel);}
+       else if(!eliminated&&isCurrent&&isMine){cell.classList.add("selectCell");const used=new Set(myInfo.used_teams||[]);const sel=makeSelect(value,myInfo.team2,used,true,result);sel.addEventListener("change",()=>{myInfo.team1=sel.value});cell.appendChild(sel);}
        else if(!eliminated)cell.textContent=value||"";
        (row===1?tr1:tr2).appendChild(cell);
      }
