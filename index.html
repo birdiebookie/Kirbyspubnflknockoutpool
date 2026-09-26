@@ -43,11 +43,11 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const expectedSlots=historical?expectedPicksForWeek(name,w,res,live):playerAllowedPicks;
        const expectedThisSlot=historical?row<=expectedSlots:(onePickCurrent?row===survivorRow:playerAllowedPicks>=row);
        const missedThisSlot=historical&&expectedThisSlot&&!value;
-       const deadSlot=isCurrent?(onePickCurrent?(row!==survivorRow):(playerAllowedPicks===0||(playerAllowedPicks===1&&row===2))):(historical&&!expectedThisSlot);
+       const blockedSlot=historical?!expectedThisSlot:(onePickCurrent?row!==survivorRow:playerAllowedPicks===0||(playerAllowedPicks===1&&row===2));
        if(historical&&value)cell.textContent=value;
        if(eliminated&&w>=weekNumber){cell.classList.add("loss");cell.innerHTML="<strong>XXX</strong><br><small>IN FOR REST OF YEAR</small>";}
        else if(missedThisSlot){cell.classList.add("loss");cell.innerHTML="<strong>MISSED</strong>";}
-       else if(deadSlot){cell.classList.add("loss");if(historical&&value){cell.textContent=value}else{cell.innerHTML="<strong>XXX</strong><br><small>XXX — PICK LOST</small>";}}
+       else if(blockedSlot){cell.textContent="";}
        else if(result==="WIN")cell.classList.add("win");
        else if(result==="LOSS")cell.classList.add("loss");
        if(!eliminated&&isCurrent&&!isMine&&value){cell.classList.remove("win","loss");cell.classList.add("picked");cell.textContent="PICKED";}
