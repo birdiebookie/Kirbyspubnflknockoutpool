@@ -25,7 +25,7 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
  for(let w=1;w<=18;w++){const h=document.createElement("th");h.colSpan=2;h.className="weekHead"+(w===weekNumber?" week2label":"");h.textContent="WEEK "+w;r1.appendChild(h);const a=document.createElement("th"),b=document.createElement("th");a.className=b.className="pickHead";a.textContent="PICK 1";b.textContent="PICK 2";r2.append(a,b)}head.append(r1,r2);
  allNames().sort((a,b)=>{const pa=currentPlayers.find(x=>playerKey(x.name)===playerKey(a))||{},pb=currentPlayers.find(x=>playerKey(x.name)===playerKey(b))||{};const oa=String(pa.status||"").toUpperCase()==="OUT",ob=String(pb.status||"").toUpperCase()==="OUT";if(oa!==ob)return oa?1:-1;const aa=Number(pa.picks_remaining)||0,bb=Number(pb.picks_remaining)||0;if(!oa&&!ob&&aa!==bb)return bb-aa;return a.localeCompare(b,undefined,{sensitivity:"base"})}).forEach(name=>{
    const tr1=document.createElement("tr"),tr2=document.createElement("tr");const td=document.createElement("td");td.className="player";td.rowSpan=2;td.textContent=name;tr1.appendChild(td);
-   const eliminated=playerIsEliminated(name),missed=missedPriorSlots(name),lost=lostPriorSlots(name),isMine=!!myInfo&&playerKey(name)===playerKey(myInfo.name);
+   const eliminated=playerIsEliminated(name),isMine=!!myInfo&&playerKey(name)===playerKey(myInfo.name);
    for(let w=1;w<=18;w++){
      const p=getWeekPlayer(w,name)||{},isCurrent=w===weekNumber,playerAllowedPicks=isCurrent?currentWeekAllowance(name):2;
      let survivorRow=1;
@@ -54,7 +54,7 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        else if(result==="LOSS")cell.classList.add("loss");
        if(!eliminated&&isCurrent&&!isMine&&value){cell.classList.remove("win","loss");cell.classList.add("picked");cell.textContent="PICKED";}
        else if(!eliminated&&isCurrent&&isMine&&!deadSlot){cell.classList.add("selectCell");const used=new Set(myInfo.used_teams||[]);const sel=makeSelect(value,myInfo.team2,used,true,result);sel.addEventListener("change",()=>{myInfo.team1=sel.value});cell.appendChild(sel);}
-       else if(!eliminated&&!deadSlot)cell.textContent=value||"";
+       else if(!eliminated)cell.textContent=value||"";
        (row===1?tr1:tr2).appendChild(cell);
      }
    }
