@@ -118,9 +118,16 @@ function render(rows,current,live,stored){
  const names=new Map();
  Object.values(rows).forEach(list=>(list||[]).forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),p.name)}));
  const players=[...names.values()];
- const records=players.map(name=>({name,rule:getRule(name,rows,current,live,stored)}));
+ const records=players.map(name=>{
+  const latest=(rows[current]||[]).find(x=>key(x.name)===key(name))||{};
+  const storedStatus=String(latest.status||"").trim().toUpperCase();
+  const rule=getRule(name,rows,current,live,stored);
+  // The database status is authoritative for OUT/DROPPED placement.
+  // This is display/order logic only; historical picks remain untouched.
+  return {name,rule,storedStatus,isOut:storedStatus==="OUT"||storedStatus==="DROPPED"||rule.out};
+ });
  records.sort((a,b)=>{
-  if(a.rule.out!==b.rule.out)return a.rule.out?1:-1;
+  if(a.isOut!==b.isOut)return a.isOut?1:-1;
   if(a.rule.allowed!==b.rule.allowed)return b.rule.allowed-a.rule.allowed;
   return a.name.localeCompare(b.name);
  });
@@ -131,7 +138,7 @@ function render(rows,current,live,stored){
  $("head").innerHTML="";$("head").appendChild(h);
  const body=$("body");body.innerHTML="";
  for(const rec of records){
-  const tr=document.createElement("tr");tr.className=rec.rule.out?"outRow":"activeRow";
+  const tr=document.createElement("tr");tr.className=rec.isOut?"outRow":"activeRow";
   const nm=document.createElement("td");nm.className="playerNameCell";nm.textContent=rec.name;tr.appendChild(nm);
   for(let w=1;w<=current;w++){
    const p=(rows[w]||[]).find(x=>key(x.name)===key(rec.name))||{};
@@ -172,7 +179,7 @@ function render(rows,current,live,stored){
      stack.appendChild(firstSlot);
      stack.appendChild(secondSlot);
    }
-   if(isCurrent && rec.rule.out){
+   if(isCurrent && rec.isOut){
      stack.innerHTML="";
      stack.appendChild(makeSlot("", "", true));
      stack.appendChild(makeSlot("", "", true));
@@ -181,7 +188,7 @@ function render(rows,current,live,stored){
    tr.appendChild(td);
   }
   const s=document.createElement("td");s.className="status "+(rec.rule.out?"out":"active");
-  s.textContent=rec.rule.out?"OUT":(rec.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");
+  s.textContent=rec.isOut?"OUT":(rec.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");
   tr.appendChild(s);body.appendChild(tr);
  }
  $("notice").textContent="WEEKS 1–"+current+" • ACTIVE PLAYERS FIRST • OUT PLAYERS AT BOTTOM • PICKS SIDE-BY-SIDE";
