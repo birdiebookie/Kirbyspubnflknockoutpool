@@ -44,7 +44,7 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        if(w<weekNumber&&value)cell.textContent=value;
        if(eliminated&&w>=weekNumber){cell.classList.add("loss");cell.innerHTML="<strong>XXX</strong><br><small>IN FOR REST OF YEAR</small>";}
        else if(w===2&&row===1&&((playerKey(name)==="cody"&&cleanTeam(value)==="eagles")||(playerKey(name)==="jeffries"&&cleanTeam(value)==="49ers"))){cell.classList.add("win");cell.textContent=value;}
-       else if(deadSlot){cell.classList.add("loss");if(w<weekNumber&&value){cell.textContent=value}else{cell.innerHTML="<strong>XXX</strong><br><small>XXX — PICK LOST</small>";}}
+       else if(w<weekNumber&&missedPriorSlots(name)[row===1?"slot1":"slot2"]){cell.classList.add("loss");cell.innerHTML="<strong>MISSED</strong>";}\n       else if(deadSlot){cell.classList.add("loss");if(w<weekNumber&&value){cell.textContent=value}else{cell.innerHTML="<strong>XXX</strong><br><small>XXX — PICK LOST</small>";}}
        else if(result==="WIN")cell.classList.add("win");
        else if(result==="LOSS")cell.classList.add("loss");
        if(!eliminated&&isCurrent&&!isMine&&value){cell.classList.remove("win","loss");cell.classList.add("picked");cell.textContent="PICKED";}
