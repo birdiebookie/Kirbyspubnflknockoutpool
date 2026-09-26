@@ -45,7 +45,9 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const missedThisSlot=historical&&expectedThisSlot&&!value;
        const blockedSlot=historical?!expectedThisSlot:(onePickCurrent?row!==survivorRow:playerAllowedPicks===0||(playerAllowedPicks===1&&row===2));
        if(historical&&value)cell.textContent=value;
-       if(eliminated&&w>=weekNumber){cell.classList.add("loss");cell.innerHTML="<strong>XXX</strong><br><small>IN FOR REST OF YEAR</small>";}
+       if(!historical&&value)cell.textContent=value;
+       const alreadyOutBeforeCurrent=expectedPicksForWeek(name,weekNumber,res,live)===0;
+       if(eliminated&&(w>weekNumber||(w===weekNumber&&alreadyOutBeforeCurrent))){cell.classList.add("loss");cell.innerHTML="<strong>XXX</strong><br><small>IN FOR REST OF YEAR</small>";}
        else if(missedThisSlot){cell.classList.add("loss");cell.innerHTML="<strong>MISSED</strong>";}
        else if(blockedSlot){cell.textContent="";}
        else if(result==="WIN")cell.classList.add("win");
