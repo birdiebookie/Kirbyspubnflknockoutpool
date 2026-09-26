@@ -92,8 +92,8 @@ async function storedResults(){
 function pickResult(p,week,live,stored){
  let r1="",r2="";
  const wr=live[week]||{},sr=(stored.weeks&&stored.weeks[String(week)])||stored[String(week)]||stored;
- if(p?.team1)r1=resultFor(p.team1,wr)||resultFor(p.team1,sr)||String(p.team1_result||"").toUpperCase();
- if(p?.team2)r2=resultFor(p.team2,wr)||resultFor(p.team2,sr)||String(p.team2_result||"").toUpperCase();
+ if(p?.team1)r1=resultFor(p.team1,sr)||String(p.team1_result||"").toUpperCase()||resultFor(p.team1,wr);
+ if(p?.team2)r2=resultFor(p.team2,sr)||String(p.team2_result||"").toUpperCase()||resultFor(p.team2,wr);
  return [r1,r2];
 }
 function makeSlot(team,result,hidden){
