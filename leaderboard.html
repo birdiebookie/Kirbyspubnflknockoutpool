@@ -117,6 +117,9 @@ function getRule(name,rows,current,live,stored){
 function render(rows,current,live,stored,currentPlayers){
  const names=new Map();
  Object.values(rows).forEach(list=>(list||[]).forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),p.name)}));
+ // Include every participant from the current roster, even if they have no weekly row.
+ // This guarantees every OUT/DROPPED player is included and can be placed at the bottom.
+ (currentPlayers||[]).forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),p.name)});
  const players=[...names.values()];
  const records=players.map(name=>{
   const currentRecord=(currentPlayers||[]).find(x=>key(x.name)===key(name))||{};
