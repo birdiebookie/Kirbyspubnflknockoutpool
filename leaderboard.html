@@ -114,13 +114,13 @@ function getRule(name,rows,current,live,stored){
  const allowed=Math.max(0,2-failures);
  return {allowed,out:failures>=2};
 }
-function render(rows,current,live,stored){
+function render(rows,current,live,stored,currentPlayers){
  const names=new Map();
  Object.values(rows).forEach(list=>(list||[]).forEach(p=>{if(p.name&&!names.has(key(p.name)))names.set(key(p.name),p.name)}));
  const players=[...names.values()];
  const records=players.map(name=>{
-  const latest=(rows[current]||[]).find(x=>key(x.name)===key(name))||{};
-  const storedStatus=String(latest.status||"").trim().toUpperCase();
+  const currentRecord=(currentPlayers||[]).find(x=>key(x.name)===key(name))||{};
+  const storedStatus=String(currentRecord.status||"").trim().toUpperCase();
   const rule=getRule(name,rows,current,live,stored);
   // The database status is authoritative for OUT/DROPPED placement.
   // This is display/order logic only; historical picks remain untouched.
@@ -205,7 +205,7 @@ async function load(){
   const rows={};
   for(let w=1;w<=current;w++)rows[w]=await rpc("get_leaderboard_for_week",{p_week:w})||[];
   const [live,stored]=await Promise.all([liveResults(),storedResults()]);
-  render(rows,current,live,stored);
+  render(rows,current,live,stored,currentPlayers);
  }catch(e){console.error(e);$("notice").textContent="COULD NOT LOAD LEADERBOARD: "+(e.message||"");}
 }
 const q=new URLSearchParams(location.search),t=q.get("token")||new URLSearchParams(location.hash.slice(1)).get("token");if(t)$("back").href="./?token="+encodeURIComponent(t);
