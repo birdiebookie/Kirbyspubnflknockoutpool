@@ -6,7 +6,7 @@
 <div id="oddsBanner" class="oddsBox">ESPN ODDS • LOADING...</div><div id="statusMsg"></div>
 <div id="entry" class="entry hidden"><h2 id="playerTitle"></h2><div id="playerMessage" class="msg"></div><div class="controls"><div><label for="pick1">1ST TEAM</label><select id="pick1"></select></div><div id="pick2Wrap"><label for="pick2">2ND TEAM</label><select id="pick2"></select></div></div><div style="margin-top:8px"><button id="saveBtn" class="primary">SAVE PICKS</button></div><div id="entryMsg" class="msg"></div></div>
 <div class="boardWrap"><table class="weekly"><thead id="weeklyHead"></thead><tbody id="weeklyBody"></tbody></table></div>
-<div class="legend"><span class="w">WIN</span><span class="l">LOSS</span><span class="p">PICKED</span> Current-week picks show PICKED in green to other players; the team names stay hidden. Your own picks remain visible to you.</div>
+<div class="legend"><span class="w">WIN</span><span class="l">LOSS</span><span class="p">PICKED</span> Week 3 picks are visible to everyone.</div>
 <a class="leaderLink" href="leaderboard.html?v=20260923-1">DETAILED LEADERBOARD</a>
 </div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 "use strict";const SUPABASE_URL="https://rkyupmpnsjjgditslpiz.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_hicUgD5WOhRlbPtwMzkaqQ_WktOF7qL",db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);const TEAMS=["Cardinals","Falcons","Ravens","Bills","Panthers","Bears","Bengals","Browns","Cowboys","Broncos","Lions","Packers","Texans","Colts","Jaguars","Chiefs","Raiders","Chargers","Rams","Dolphins","Vikings","Patriots","Saints","Giants","Jets","Eagles","Steelers","49ers","Seahawks","Buccaneers","Titans","Commanders"];const $=id=>document.getElementById(id);let currentPlayers=[],weekNumber=3,myInfo=null,lockTime=null,oddsData={},weekData={},allowedPicks=2;
@@ -52,8 +52,7 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        else if(blockedSlot){cell.textContent="";}
        else if(result==="WIN")cell.classList.add("win");
        else if(result==="LOSS")cell.classList.add("loss");
-       if(!eliminated&&isCurrent&&!isMine&&value){cell.classList.remove("win","loss");cell.classList.add("picked");cell.textContent="PICKED";}
-       else if(!eliminated&&isCurrent&&isMine){cell.classList.add("selectCell");const used=new Set(myInfo.used_teams||[]);const sel=makeSelect(value,myInfo.team2,used,true,result);sel.addEventListener("change",()=>{myInfo.team1=sel.value});cell.appendChild(sel);}
+       if(!eliminated&&isCurrent&&isMine){cell.classList.add("selectCell");const used=new Set(myInfo.used_teams||[]);const sel=makeSelect(value,myInfo.team2,used,true,result);sel.addEventListener("change",()=>{myInfo.team1=sel.value});cell.appendChild(sel);}
        else if(!eliminated)cell.textContent=value||"";
        (row===1?tr1:tr2).appendChild(cell);
      }
