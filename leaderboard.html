@@ -91,7 +91,7 @@ async function storedResults(){
 }
 function pickResult(p,week,live,stored){
  let r1="",r2="";
- const sr=(stored.weeks&&stored.weeks[String(week)])||stored[String(week)]||stored;
+ const sr=(stored.weeks&&stored.weeks[String(week)])||stored[String(week)]||{};
  if(p?.team1)r1=String(p.team1_result||"").toUpperCase()||resultFor(p.team1,sr);
  if(p?.team2)r2=String(p.team2_result||"").toUpperCase()||resultFor(p.team2,sr);
  return [r1,r2];
