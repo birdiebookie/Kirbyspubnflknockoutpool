@@ -177,6 +177,7 @@ function render(rows,current,live,stored,currentPlayers){
      firstSlot.style.gridColumn="1";
      const spacer=document.createElement("div");
      spacer.className="pickslot pending";
+     if(w===2 && !isCurrent)spacer.className="pickslot pending week2NotPicked";
      spacer.textContent="NOT PICKED";
      spacer.style.gridRow=String(survivorRow===1?2:1);
      spacer.style.gridColumn="1";
