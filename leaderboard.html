@@ -186,6 +186,7 @@ function render(rows,current,live,stored,currentPlayers){
      firstSlot.style.gridRow="1";
      firstSlot.style.gridColumn="1";
      const secondSlot=makeSlot(p.team2,r2,hideCurrent);
+     if(w===2 && !isCurrent && !p.team2)secondSlot.className="pickslot pending week2NotPicked";
      if(hideCurrent && p.team2)secondSlot.textContent="PICKED";
      secondSlot.style.gridRow="2";
      secondSlot.style.gridColumn="1";
