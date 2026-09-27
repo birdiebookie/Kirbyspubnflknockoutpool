@@ -64,12 +64,12 @@ function resultFor(team,results){
  return"";
 }
 function weekFromDate(s){const d=new Date(s),start=new Date("2026-09-10T00:00:00-04:00");return Math.floor((d-start)/604800000)+1}
+function easternDateKey(){const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const p={};for(const x of parts)p[x.type]=x.value;return p.year+p.month+p.day}
 async function liveResults(){
  const out={};
  try{
-  const now=new Date(),from=new Date(now-40*86400000),to=new Date(now+86400000);
-  const fmt=d=>d.toISOString().slice(0,10).replaceAll("-","");
-  const r=await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates="+fmt(from)+"-"+fmt(to)+"&limit=1000",{cache:"no-store"});
+  const dateKey=easternDateKey();
+  const r=await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates="+dateKey+"&limit=100",{cache:"no-store"});
   if(!r.ok)throw Error();
   const data=await r.json();
   for(const ev of data.events||[]){
@@ -77,7 +77,7 @@ async function liveResults(){
    if(!(st.completed||st.state==="post"||String(st.name||"").toUpperCase().includes("FINAL")))continue;
    const c=ev.competitions?.[0]?.competitors||[];if(c.length<2)continue;
    const a=c[0],b=c[1],sa=Number(a.score),sb=Number(b.score);if(!Number.isFinite(sa)||!Number.isFinite(sb)||sa===sb)continue;
-   const w=Number(ev.week?.number||ev.competitions?.[0]?.week?.number||weekFromDate(ev.date));if(w<1||w>18)continue;
+   const w=Number(ev.week?.number||ev.competitions?.[0]?.week?.number);if(!Number.isInteger(w)||w<1||w>18)continue;
    if(!out[w])out[w]={};
    const win=sa>sb?a:b,lose=sa>sb?b:a;
    [win.team?.displayName,win.team?.shortDisplayName,win.team?.name,win.team?.abbreviation].forEach(x=>{if(x)out[w][clean(x)]="WIN"});
