@@ -157,8 +157,9 @@ function render(rows,current,live,stored,currentPlayers){
    const td=document.createElement("td");td.className="weekCell";
    const stack=document.createElement("div");stack.className="weekStack";
    const isCurrent=w===current;
-   // WEEK 3: show that a pick was made, but never reveal the team — even to the picker.
-   const hideCurrent=!rec.rule.out && isCurrent;
+   // WEEK 3 PICKS ARE NOW VISIBLE TO EVERYONE.
+   // Display only — no pick or result data is changed.
+   const hideCurrent=false;
    const firstSlot=makeSlot(p.team1,r1,hideCurrent);
    if(hideCurrent && p.team1)firstSlot.textContent="PICKED";
    // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
