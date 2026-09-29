@@ -36,5 +36,87 @@
     "Panthers": 3.5,
     "Falcons": 2.5,
     "Saints": -2.5
-  }
+  },
+  "games": [
+    {
+      "away": "Steelers",
+      "home": "Browns",
+      "kickoff": "2026-10-01T20:15:00-04:00"
+    },
+    {
+      "away": "Colts",
+      "home": "Commanders",
+      "kickoff": "2026-10-04T09:30:00-04:00"
+    },
+    {
+      "away": "Titans",
+      "home": "Ravens",
+      "kickoff": "2026-10-04T13:00:00-04:00"
+    },
+    {
+      "away": "Patriots",
+      "home": "Bills",
+      "kickoff": "2026-10-04T13:00:00-04:00"
+    },
+    {
+      "away": "Jets",
+      "home": "Bears",
+      "kickoff": "2026-10-04T13:00:00-04:00"
+    },
+    {
+      "away": "Jaguars",
+      "home": "Bengals",
+      "kickoff": "2026-10-04T13:00:00-04:00"
+    },
+    {
+      "away": "Cowboys",
+      "home": "Texans",
+      "kickoff": "2026-10-04T13:00:00-04:00"
+    },
+    {
+      "away": "Cardinals",
+      "home": "Giants",
+      "kickoff": "2026-10-04T13:00:00-04:00"
+    },
+    {
+      "away": "Rams",
+      "home": "Eagles",
+      "kickoff": "2026-10-04T13:00:00-04:00"
+    },
+    {
+      "away": "Packers",
+      "home": "Buccaneers",
+      "kickoff": "2026-10-04T13:00:00-04:00"
+    },
+    {
+      "away": "Dolphins",
+      "home": "Vikings",
+      "kickoff": "2026-10-04T16:05:00-04:00"
+    },
+    {
+      "away": "Chiefs",
+      "home": "Raiders",
+      "kickoff": "2026-10-04T16:25:00-04:00"
+    },
+    {
+      "away": "Chargers",
+      "home": "Seahawks",
+      "kickoff": "2026-10-04T16:25:00-04:00"
+    },
+    {
+      "away": "Broncos",
+      "home": "49ers",
+      "kickoff": "2026-10-04T16:25:00-04:00"
+    },
+    {
+      "away": "Lions",
+      "home": "Panthers",
+      "kickoff": "2026-10-04T20:20:00-04:00"
+    },
+    {
+      "away": "Falcons",
+      "home": "Saints",
+      "kickoff": "2026-10-05T20:15:00-04:00"
+    }
+  ]
 }
