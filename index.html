@@ -47,14 +47,29 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const blockedSlot=historical?!expectedThisSlot:(onePickCurrent?row!==survivorRow:playerAllowedPicks===0||(playerAllowedPicks===1&&row===2));
        const alreadyOutBeforeCurrent=expectedPicksForWeek(name,weekNumber,res,live)===0;
        const editableCurrentSlot=!historical&&isCurrentEditableWeek(w)&&!eliminated&&isMine&&!blockedSlot;
-       if(eliminated&&(w>weekNumber||(w===weekNumber&&alreadyOutBeforeCurrent))){cell.classList.add("loss");cell.innerHTML="<strong>XXX</strong><br><small>IN FOR REST OF YEAR</small>";}
-       else if(missedThisSlot){cell.classList.add("loss");cell.innerHTML="<strong>MISSED</strong>";}
-       else if(blockedSlot){cell.textContent="";}
-       else if(result==="WIN")cell.classList.add("win");
+       // HARD RULE: Weeks before the current week are DISPLAY-ONLY.
+       // Never create a SELECT TEAM control for a historical week, regardless of token,
+       // pick allowance, or any other state.
+       if(historical){
+         if(result==="WIN")cell.classList.add("win");
+         else if(result==="LOSS")cell.classList.add("loss");
+         else if(missedThisSlot)cell.classList.add("loss");
+         if(missedThisSlot)cell.innerHTML="<strong>MISSED</strong>";
+         else if(value)cell.textContent=value;
+         else cell.textContent="";
+       }else if(eliminated&&(w===weekNumber&&alreadyOutBeforeCurrent)){
+         cell.classList.add("loss");cell.innerHTML="<strong>XXX</strong><br><small>IN FOR REST OF YEAR</small>";
+       }else if(blockedSlot){
+         cell.textContent="";
+       }else if(result==="WIN")cell.classList.add("win");
        else if(result==="LOSS")cell.classList.add("loss");
-       if(editableCurrentSlot){cell.classList.add("selectCell");const used=new Set(myInfo.used_teams||[]);const other=row===1?myInfo.team2:myInfo.team1;const sel=makeSelect(value,other,used,true,result);sel.addEventListener("change",()=>{if(row===1)myInfo.team1=sel.value;else myInfo.team2=sel.value});cell.appendChild(sel);}
-       else if(!historical&&!eliminated&&isCurrentEditableWeek(w)&&!blockedSlot)cell.textContent=value||"";
-       else if(historical&&value)cell.textContent=value;
+
+       // ONLY the current week can ever create an editable dropdown.
+       if(!historical && editableCurrentSlot){
+         cell.classList.add("selectCell");const used=new Set(myInfo.used_teams||[]);const other=row===1?myInfo.team2:myInfo.team1;const sel=makeSelect(value,other,used,true,result);sel.addEventListener("change",()=>{if(row===1)myInfo.team1=sel.value;else myInfo.team2=sel.value});cell.appendChild(sel);
+       }else if(!historical&&!eliminated&&isCurrentEditableWeek(w)&&!blockedSlot){
+         cell.textContent=value||"";
+       }
        (row===1?tr1:tr2).appendChild(cell);
      }
    }
