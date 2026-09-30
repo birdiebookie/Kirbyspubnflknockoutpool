@@ -131,15 +131,12 @@ function render(rows,current,live,stored,currentPlayers){
   // This is display/order logic only; historical picks remain untouched.
   return {name,rule,storedStatus,isOut:storedStatus==="OUT"||storedStatus==="DROPPED"||rule.out};
  });
- // OUT players are removed from the leaderboard display only.
- // Their database records, picks, results, and history remain untouched.
- const activeRecords=records.filter(r=>!r.isOut);
- activeRecords.sort((a,b)=>{
-  if(a.rule.allowed!==b.rule.allowed)return b.rule.allowed-a.rule.allowed;
+ // Keep every player visible. Active players are listed first; OUT players stay at the bottom.
+ records.sort((a,b)=>{
+  if(a.isOut!==b.isOut)return a.isOut?1:-1;
+  if(!a.isOut&&a.rule.allowed!==b.rule.allowed)return b.rule.allowed-a.rule.allowed;
   return a.name.localeCompare(b.name);
  });
- records.length=0;
- records.push(...activeRecords);
  const h=document.createElement("tr");
  const n=document.createElement("th");n.className="playerName";n.textContent="PLAYER";h.appendChild(n);
  for(let w=1;w<=current;w++){const th=document.createElement("th");th.className="weekHead "+(w===1?"week1Head":"");th.textContent="WEEK "+w;h.appendChild(th)}
@@ -162,7 +159,7 @@ function render(rows,current,live,stored,currentPlayers){
    if(hideCurrent && p.team1)firstSlot.textContent="PICKED";
    // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
    // Do not affect Week 1, Week 3, Week 2 second slot, or any pick/result logic.
-   if((w===2 || w===3) && !p.team1)firstSlot.className="pickslot pending week2NotPicked";
+   if(!isCurrent && !p.team1){firstSlot.className="pickslot pending week2NotPicked";firstSlot.textContent="MISSED";}
 
    // DISPLAY ONLY: when a player has one pick left, place the current week's
    // actual pick in the same visual row as the surviving prior-week winner.
@@ -177,7 +174,7 @@ function render(rows,current,live,stored,currentPlayers){
      firstSlot.style.gridColumn="1";
      const spacer=document.createElement("div");
      spacer.className="pickslot pending";
-     if((w===2 || w===3))spacer.className="pickslot pending week2NotPicked";
+     spacer.className="pickslot pending week2NotPicked";
      spacer.textContent="NOT PICKED";
      spacer.style.gridRow=String(survivorRow===1?2:1);
      spacer.style.gridColumn="1";
@@ -187,7 +184,7 @@ function render(rows,current,live,stored,currentPlayers){
      firstSlot.style.gridRow="1";
      firstSlot.style.gridColumn="1";
      const secondSlot=makeSlot(p.team2,r2,hideCurrent);
-     if((w===2 || w===3) && !p.team2)secondSlot.className="pickslot pending week2NotPicked";
+     if(!isCurrent && !p.team2){secondSlot.className="pickslot pending week2NotPicked";secondSlot.textContent="MISSED";}
      if(hideCurrent && p.team2)secondSlot.textContent="PICKED";
      secondSlot.style.gridRow="2";
      secondSlot.style.gridColumn="1";
@@ -202,7 +199,7 @@ function render(rows,current,live,stored,currentPlayers){
    td.appendChild(stack);
    tr.appendChild(td);
   }
-  const s=document.createElement("td");s.className="status "+(rec.rule.out?"out":"active");
+  const s=document.createElement("td");s.className="status "+(rec.isOut?"out":"active");
   s.textContent=rec.isOut?"OUT":(rec.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");
   tr.appendChild(s);body.appendChild(tr);
  }
