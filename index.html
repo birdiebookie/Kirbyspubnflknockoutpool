@@ -56,6 +56,8 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const blockedSlot=false;
        if(historical&&value)cell.textContent=value;
        if(!historical&&value)cell.textContent=value;
+       // For completed weeks, an empty pick slot is a recorded MISS and must be red, not white.
+       if(historical&&!value)cell.classList.add("loss");
        const alreadyOutBeforeCurrent=expectedPicksForWeek(name,weekNumber,res,live)===0;
        if(eliminated&&(w>weekNumber||(w===weekNumber&&alreadyOutBeforeCurrent))){cell.classList.add("loss");cell.innerHTML="<strong>XXX</strong><br><small>IN FOR REST OF YEAR</small>";}
        else if(missedThisSlot){cell.classList.add("loss");cell.innerHTML="<strong>MISSED</strong>";}
