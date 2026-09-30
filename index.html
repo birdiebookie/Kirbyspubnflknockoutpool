@@ -41,10 +41,10 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const value=onePickCurrent?(row===survivorRow?(p.team1||""):""):(actualSlot===1?(p.team1||""):(p.team2||""));
        const result=onePickCurrent?(row===survivorRow?exactPickResult(p,1,w,res,live):""):exactPickResult(p,actualSlot,w,res,live);
        const historical=w<weekNumber;
-       const expectedSlots=historical?expectedPicksForWeek(name,w,res,live):playerAllowedPicks;
-       const expectedThisSlot=historical?row<=expectedSlots:(onePickCurrent?row===survivorRow:playerAllowedPicks>=row);
-       const missedThisSlot=historical&&expectedThisSlot&&!value;
-       const blockedSlot=historical?!expectedThisSlot:(onePickCurrent?row!==survivorRow:playerAllowedPicks===0||(playerAllowedPicks===1&&row===2));
+       // Historical weeks are display-only. Always show the saved Week 1–3 picks/results.
+       // Do not recalculate, block, hide, or alter historical picks.
+       const missedThisSlot=false;
+       const blockedSlot=false;
        if(historical&&value)cell.textContent=value;
        if(!historical&&value)cell.textContent=value;
        const alreadyOutBeforeCurrent=expectedPicksForWeek(name,weekNumber,res,live)===0;
