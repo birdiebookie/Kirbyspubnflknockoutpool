@@ -51,12 +51,16 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        // Never create a SELECT TEAM control for a historical week, regardless of token,
        // pick allowance, or any other state.
        if(historical){
-         if(result==="WIN")cell.classList.add("win");
-         else if(result==="LOSS")cell.classList.add("loss");
-         else if(missedThisSlot)cell.classList.add("loss");
-         if(missedThisSlot)cell.innerHTML="<strong>MISSED</strong>";
-         else if(value)cell.textContent=value;
-         else cell.textContent="";
+         // Historical weeks are permanent display-only history.
+         // If a saved slot has no team, show it as MISSED (red), never blank.
+         if(value){
+           if(result==="WIN")cell.classList.add("win");
+           else if(result==="LOSS")cell.classList.add("loss");
+           cell.textContent=value;
+         }else{
+           cell.classList.add("loss");
+           cell.innerHTML="<strong>MISSED</strong>";
+         }
        }else if(eliminated&&(w===weekNumber&&alreadyOutBeforeCurrent)){
          cell.classList.add("loss");cell.innerHTML="<strong>XXX</strong><br><small>IN FOR REST OF YEAR</small>";
        }else if(blockedSlot){
