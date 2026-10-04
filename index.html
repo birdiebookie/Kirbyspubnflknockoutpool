@@ -67,9 +67,9 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        }else if(result==="WIN")cell.classList.add("win");
        else if(result==="LOSS")cell.classList.add("loss");
 
-       if(!historical && editableCurrentSlot){
+       if(!hideCurrentForOthers && !historical && editableCurrentSlot){
          cell.classList.add("selectCell");const used=new Set(myInfo.used_teams||[]);const other=slot===1?myInfo.team2:myInfo.team1;const sel=makeSelect(value,other,used,true,result);sel.addEventListener("change",()=>{if(slot===1)myInfo.team1=sel.value;else myInfo.team2=sel.value});cell.appendChild(sel);
-       }else if(!historical&&!eliminated&&isCurrentEditableWeek(w)&&!blockedSlot){
+       }else if(!hideCurrentForOthers && !historical&&!eliminated&&isCurrentEditableWeek(w)&&!blockedSlot){
          cell.textContent=value||"";
        }
        tr.appendChild(cell);
