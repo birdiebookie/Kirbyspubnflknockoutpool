@@ -42,7 +42,7 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const onePickCurrent=isCurrent&&playerAllowedPicks===1&&!eliminated;
        const actualSlot=onePickCurrent?1:slot;
        const value=onePickCurrent?(slot===survivorSlot?(p.team1||""):""):(actualSlot===1?(p.team1||""):(p.team2||""));
-       const result=onePickCurrent?(slot===survivorSlot?exactPickResult(p,1,w,res,live):""):exactPickResult(p,actualSlot,w,res,live);
+       let result=onePickCurrent?(slot===survivorSlot?exactPickResult(p,1,w,res,live):""):exactPickResult(p,actualSlot,w,res,live);if(Number(w)===4&&value){const wk4=res?.weeks?.["4"]||{};result=resultForTeam(value,wk4)||result;}
        const historical=isHistoricalWeek(w);
        const expectedSlots=historical?expectedPicksForWeek(name,w,res,live):playerAllowedPicks;
        const expectedThisSlot=historical?slot<=expectedSlots:(onePickCurrent?slot===survivorSlot:playerAllowedPicks>=slot);
