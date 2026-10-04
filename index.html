@@ -31,7 +31,7 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
    const eliminated=playerIsEliminated(name),isMine=!!myInfo&&playerKey(name)===playerKey(myInfo.name);
    for(let w=1;w<=18;w++){
      const p=getWeekPlayer(w,name)||{},isCurrent=w===weekNumber,playerAllowedPicks=isCurrent?currentWeekAllowance(name):2;
-     const hideCurrentForOthers=(Number(w)===4);
+     const hideCurrentForOthers=(Number(w)===4)&&!!myInfo&&!isMine;
      let survivorSlot=1;
      if(isCurrent&&playerAllowedPicks===1&&!eliminated){
        const prior=getWeekPlayer(w-1,name)||{},pr1=exactPickResult(prior,1,w-1,res,live),pr2=exactPickResult(prior,2,w-1,res,live);
@@ -49,8 +49,8 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const blockedSlot=historical?!expectedThisSlot:(onePickCurrent?slot!==survivorSlot:playerAllowedPicks===0||(playerAllowedPicks===1&&slot===2));
        const alreadyOutBeforeCurrent=expectedPicksForWeek(name,weekNumber,res,live)===0;
        const editableCurrentSlot=!historical&&isCurrentEditableWeek(w)&&!eliminated&&isMine&&!blockedSlot;
-       if(hideCurrentForOthers && !isMine){
-         if(slot===2&&!value){cell.classList.add("loss");cell.innerHTML="<strong>MISSED</strong>";}else cell.textContent=value ? "HIDDEN" : "";
+       if(hideCurrentForOthers){
+         cell.textContent="";
        }else if(historical){
          if(value){
            if(result==="WIN")cell.classList.add("win");
