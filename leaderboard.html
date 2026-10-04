@@ -91,9 +91,12 @@ async function storedResults(){
 }
 function pickResult(p,week,live,stored){
  let r1="",r2="";
+ // LIVE ESPN results are authoritative for completed games.
+ // Fall back to the stored results file if the live feed is unavailable.
+ const lr=(live&&live[String(week)])||{};
  const sr=(stored.weeks&&stored.weeks[String(week)])||stored[String(week)]||{};
- if(p?.team1)r1=String(p.team1_result||"").toUpperCase()||resultFor(p.team1,sr);
- if(p?.team2)r2=String(p.team2_result||"").toUpperCase()||resultFor(p.team2,sr);
+ if(p?.team1)r1=String(p.team1_result||"").toUpperCase()||resultFor(p.team1,lr)||resultFor(p.team1,sr);
+ if(p?.team2)r2=String(p.team2_result||"").toUpperCase()||resultFor(p.team2,lr)||resultFor(p.team2,sr);
  return [r1,r2];
 }
 function makeSlot(team,result,hidden){
