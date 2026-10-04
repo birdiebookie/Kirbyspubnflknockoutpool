@@ -63,7 +63,7 @@ function resultFor(team,results){
  for(const x of Object.keys(results||{})){const y=clean(x);if(k===y||k.endsWith(" "+y)||y.endsWith(" "+k))return results[x]}
  return"";
 }
-function weekFromDate(s){const d=new Date(s),start=new Date("2026-09-10T00:00:00-04:00");return Math.floor((d-start)/604800000)+1}
+function weekFromDate(s){const d=new Date(s),start=new Date("2026-09-10T00:00:00-04:00");return Math.floor((d-start)/604800000)+1}function currentWeekLockTime(){const d=new Date();const day=d.getDay();const daysToSunday=(7-day)%7;const cutoff=new Date(d);cutoff.setDate(d.getDate()+daysToSunday);cutoff.setHours(13,0,0,0);return cutoff}function currentWeekPicksHidden(){return currentWeekLockTime()>new Date()}
 function easternDateKey(){const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const p={};for(const x of parts)p[x.type]=x.value;return p.year+p.month+p.day}
 async function liveResults(){
  const out={};
@@ -154,7 +154,7 @@ function render(rows,current,live,stored,currentPlayers){
    const isCurrent=w===current;
    // WEEK 3 PICKS ARE NOW VISIBLE TO EVERYONE.
    // Display only — no pick or result data is changed.
-   const hideCurrent=false;
+   const hideCurrent=isCurrent&&currentWeekPicksHidden();
    const firstSlot=makeSlot(p.team1,r1,hideCurrent);
    if(hideCurrent && p.team1)firstSlot.textContent="PICKED";
    // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
