@@ -6,18 +6,18 @@
 <div id="oddsBanner" class="oddsBox">ESPN ODDS • LOADING...</div><div id="statusMsg"></div>
 <div id="entry" class="entry hidden"><h2 id="playerTitle"></h2><div id="playerMessage" class="msg"></div><div class="controls"><div><label for="pick1">1ST TEAM</label><select id="pick1"></select></div><div id="pick2Wrap"><label for="pick2">2ND TEAM</label><select id="pick2"></select></div></div><div style="margin-top:8px"><button id="saveBtn" class="primary">SAVE PICKS</button></div><div id="entryMsg" class="msg"></div></div>
 <div class="boardWrap"><table class="weekly"><thead id="weeklyHead"></thead><tbody id="weeklyBody"></tbody></table></div>
-<div class="legend"><span class="w">WIN</span><span class="l">LOSS</span><span class="p">PICKED</span> Week 3 picks are visible to everyone.</div>
+<div class="legend"><span class="w">WIN</span><span class="l">LOSS</span><span class="p">PICKED</span> Current-week picks are hidden from other players until Sunday at 1:00 PM Eastern.</div>
 <a class="leaderLink" href="leaderboard.html?v=20260923-1">DETAILED LEADERBOARD</a>
 </div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
-"use strict";const SUPABASE_URL="https://rkyupmpnsjjgditslpiz.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_hicUgD5WOhRlbPtwMzkaqQ_WktOF7qL",db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);const TEAMS=["Cardinals","Falcons","Ravens","Bills","Panthers","Bears","Bengals","Browns","Cowboys","Broncos","Lions","Packers","Texans","Colts","Jaguars","Chiefs","Raiders","Chargers","Rams","Dolphins","Vikings","Patriots","Saints","Giants","Jets","Eagles","Steelers","49ers","Seahawks","Buccaneers","Titans","Commanders"];const $=id=>document.getElementById(id);let currentPlayers=[],weekNumber=3,myInfo=null,lockTime=null,oddsData={},weekData={},allowedPicks=2;
-function tokenFromUrl(){const q=new URLSearchParams(location.search);let t=q.get("token")||new URLSearchParams(location.hash.substring(1)).get("token")||"";if(!t){const m=location.pathname.match(/(?:token[=\\/])([^\\/?#]+)/i);if(m)t=m[1]}try{t=decodeURIComponent(t||"")}catch(e){}if(t){try{sessionStorage.setItem("kirby_pool_token",t);localStorage.setItem("kirby_pool_token",t)}catch(e){}}if(!t){try{t=sessionStorage.getItem("kirby_pool_token")||localStorage.getItem("kirby_pool_token")||""}catch(e){}}return t}function nextSundayOnePM(){const d=new Date(),day=d.getDay(),days=(7-day)%7;d.setDate(d.getDate()+days);d.setHours(13,0,0,0);if(d<=new Date())d.setDate(d.getDate()+7);return d.toISOString()}function isLocked(){return new Date(lockTime||nextSundayOnePM())<=new Date()}async function rpc(name,args){const{data,error}=await db.rpc(name,args);if(error)throw error;return data}function showStatus(t,type="ok"){const e=$("statusMsg");e.className=type;e.textContent=t;setTimeout(()=>{e.textContent="";e.className=""},5000)}
+"use strict";const SUPABASE_URL="https://rkyupmpnsjjgditslpiz.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_hicUgD5WOhRlbPtwMzkaqQ_WktOF7qL",db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);const TEAMS=["Cardinals","Falcons","Ravens","Bills","Panthers","Bears","Bengals","Browns","Cowboys","Broncos","Lions","Packers","Texans","Colts","Jaguars","Chiefs","Raiders","Chargers","Rams","Dolphins","Vikings","Patriots","Saints","Giants","Jets","Eagles","Steelers","49ers","Seahawks","Buccaneers","Titans","Commanders"];const FROZEN_HISTORICAL_WEEKS=Object.freeze([1,2,3]);const $=id=>document.getElementById(id);let currentPlayers=[],weekNumber=3,myInfo=null,lockTime=null,oddsData={},weekData={},allowedPicks=2;
+function tokenFromUrl(){const q=new URLSearchParams(location.search);let t=q.get("token")||new URLSearchParams(location.hash.substring(1)).get("token")||"";if(!t){const m=location.pathname.match(/(?:token[=\\/])([^\\/?#]+)/i);if(m)t=m[1]}try{t=decodeURIComponent(t||"")}catch(e){}if(t){try{sessionStorage.setItem("kirby_pool_token",t);localStorage.setItem("kirby_pool_token",t)}catch(e){}}if(!t){try{t=sessionStorage.getItem("kirby_pool_token")||localStorage.getItem("kirby_pool_token")||""}catch(e){}}return t}function nextSundayOnePM(){const d=new Date(),day=d.getDay(),days=(7-day)%7;d.setDate(d.getDate()+days);d.setHours(13,0,0,0);if(d<=new Date())d.setDate(d.getDate()+7);return d.toISOString()}function currentWeekLockTime(){const now=new Date();const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",weekday:"short",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(now);const p={};for(const x of parts)p[x.type]=x.value;const dayMap={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};const day=dayMap[p.weekday];const delta=(7-day)%7;const target=new Date(now);target.setDate(target.getDate()+delta);target.setHours(13,0,0,0);return target}function currentWeekPicksHidden(){return currentWeekLockTime()>new Date()}function isLocked(){return !currentWeekPicksHidden()}async function rpc(name,args){const{data,error}=await db.rpc(name,args);if(error)throw error;return data}function showStatus(t,type="ok"){const e=$("statusMsg");e.className=type;e.textContent=t;setTimeout(()=>{e.textContent="";e.className=""},5000)}
 async function loadOdds(){try{const r=await fetch("odds.json?ts="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error();oddsData=await r.json();renderOddsBanner()}catch(e){oddsData={};renderOddsBanner(true)}}function formatSpread(v){const n=Number(v);if(!Number.isFinite(n))return"";if(n===0)return"PK";return(n>0?"+":"")+n.toFixed(1).replace(".0","")}function spreadLabel(team){const v=oddsData.spreads&&oddsData.spreads[team];return v===undefined||v===null?team:team+" "+formatSpread(v)}function renderOddsBanner(error=false){const e=$("oddsBanner");if(error||!oddsData.updated_at){e.innerHTML="ESPN ODDS • WAITING FOR THE 9:00 AM ET UPDATE<small>Spreads will appear beside each team when ESPN odds are updated.</small>";return}const stamp=oddsData.updated_et||new Date(oddsData.updated_at).toLocaleString("en-US",{timeZone:"America/New_York"});e.innerHTML="ESPN CURRENT ODDS • UPDATED "+stamp+"<small>Informational only — the pool is still straight-up winners, not against the spread.</small>"}
 async function fetchStoredResults(){try{const r=await fetch("./nfl-results.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error();return await r.json()}catch(e){return{}}}function cleanTeam(s){return String(s||"").replace(/\s+[-+]\d+(?:\.\d+)?\s*$/g,"").replace(/\s+/g," ").trim().toLowerCase()}function resultForTeam(team,results){const k=cleanTeam(team);if(!k)return"";if(results[k])return results[k];for(const x of Object.keys(results)){const y=cleanTeam(x);if(k===y||k.endsWith(" "+y)||y.endsWith(" "+k))return results[x]}return""}
 async function loadPickAllowance(){allowedPicks=0;if(!myInfo)return;const rosterAllowed=currentWeekAllowance(myInfo.name);if(currentPlayers.length&&Number.isFinite(rosterAllowed)){allowedPicks=rosterAllowed;return}const serverAllowed=Number(myInfo.picks_remaining);allowedPicks=Number.isFinite(serverAllowed)?Math.max(0,Math.min(2,serverAllowed)):0}
 async function loadData(){currentPlayers=await rpc("get_leaderboard",{})||[];if(currentPlayers.length){weekNumber=Number(currentPlayers[0].week_number)||2;if(currentPlayers[0].lock_time)lockTime=currentPlayers[0].lock_time}weekData={};for(let w=1;w<=weekNumber;w++)weekData[w]=await rpc("get_leaderboard_for_week",{p_week:w})||[]}
 async function loadMe(){const token=tokenFromUrl();if(!token){myInfo=null;return}try{const rows=await rpc("get_my_info",{p_token:token});myInfo=Array.isArray(rows)&&rows.length?rows[0]:null;if(myInfo){weekNumber=Number(myInfo.week_number)||weekNumber;if(myInfo.lock_time)lockTime=myInfo.lock_time}}catch(e){console.error("get_my_info failed",e);myInfo=null;$("entryMsg").textContent="Your personal link was not recognized. Please reopen the original player link.";}}
 function makeSelect(value,other,used,editable,result){const s=document.createElement("select");s.className="pickSelect";s.appendChild(new Option(editable?"SELECT TEAM":(value||""),""));TEAMS.forEach(t=>{const o=new Option(spreadLabel(t),t);if(used.has(t)&&t!==value)o.classList.add("usedTeam");o.disabled=(used.has(t)&&t!==value)||t===other;if(t===value)o.selected=true;s.appendChild(o)});s.disabled=!editable;if(result==="WIN")s.classList.add("win");if(result==="LOSS")s.classList.add("loss");return s}
-function playerKey(name){return String(name||"").trim().toLowerCase()}function currentWeekAllowance(name){const p=currentPlayers.find(x=>playerKey(x.name)===playerKey(name));const n=Number(p?.picks_remaining);return Number.isFinite(n)?Math.max(0,Math.min(2,n)):0}function expectedPicksForWeek(name,week,stored,live){let failures=0;for(let w=1;w<week;w++){if(failures>=2)break;const p=getWeekPlayer(w,name)||{};const allowed=Math.max(0,2-failures);if(allowed>=1){const r=exactPickResult(p,1,w,stored,live);if(!p.team1||r==="LOSS")failures++}if(allowed>=2){const r=exactPickResult(p,2,w,stored,live);if(!p.team2||r==="LOSS")failures++}}return Math.max(0,Math.min(2,2-failures))}function playerIsEliminated(name){const p=currentPlayers.find(x=>playerKey(x.name)===playerKey(name));return String(p?.status||"").toUpperCase()==="OUT"||currentWeekAllowance(name)===0}function getWeekPlayer(week,name){return (weekData[week]||[]).find(p=>playerKey(p.name)===playerKey(name))||null}function allNames(){const m=new Map();Object.values(weekData).flat().forEach(p=>{if(p.name&&!m.has(playerKey(p.name)))m.set(playerKey(p.name),p.name)});currentPlayers.forEach(p=>{if(p.name&&!m.has(playerKey(p.name)))m.set(playerKey(p.name),p.name)});return Array.from(m.values())}
+function playerKey(name){return String(name||"").trim().toLowerCase()}function currentWeekAllowance(name){const p=currentPlayers.find(x=>playerKey(x.name)===playerKey(name));const n=Number(p?.picks_remaining);return Number.isFinite(n)?Math.max(0,Math.min(2,n)):0}function expectedPicksForWeek(name,week,stored,live){let failures=0;for(let w=1;w<week;w++){if(failures>=2)break;const p=getWeekPlayer(w,name)||{};const allowed=Math.max(0,2-failures);if(allowed>=1){const r=exactPickResult(p,1,w,stored,live);if(!p.team1||r==="LOSS")failures++}if(allowed>=2){const r=exactPickResult(p,2,w,stored,live);if(!p.team2||r==="LOSS")failures++}}return Math.max(0,Math.min(2,2-failures))}function isHistoricalWeek(week){return FROZEN_HISTORICAL_WEEKS.includes(Number(week))||Number(week)<Number(weekNumber)}function isCurrentEditableWeek(week){return !FROZEN_HISTORICAL_WEEKS.includes(Number(week))&&Number(week)===Number(weekNumber)}function playerIsEliminated(name){const p=currentPlayers.find(x=>playerKey(x.name)===playerKey(name));return String(p?.status||"").toUpperCase()==="OUT"||currentWeekAllowance(name)===0}function getWeekPlayer(week,name){return (weekData[week]||[]).find(p=>playerKey(p.name)===playerKey(name))||null}function allNames(){const m=new Map();Object.values(weekData).flat().forEach(p=>{if(p.name&&!m.has(playerKey(p.name)))m.set(playerKey(p.name),p.name)});currentPlayers.forEach(p=>{if(p.name&&!m.has(playerKey(p.name)))m.set(playerKey(p.name),p.name)});return Array.from(m.values())}
 function exactPickResult(p,slot,week,stored,live){if(!p)return"";const team=slot===1?p.team1:p.team2;let result=String(slot===1?p.team1_result:p.team2_result||"").trim().toUpperCase();if(result==="WIN"||result==="LOSS")return result;if(team&&stored?.weeks?.[String(week)])result=resultForTeam(team,stored.weeks[String(week)]);if(!result&&team&&week===1)result=resultForTeam(team,stored.results||{});return result==="WIN"||result==="LOSS"?result:""}
 function easternDateKey(){const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const p={};for(const x of parts)p[x.type]=x.value;return p.year+p.month+p.day}
 async function loadLiveResults(){const out={};try{const dateKey=easternDateKey();const r=await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates="+dateKey+"&limit=100",{cache:"no-store"});if(!r.ok)throw Error();const data=await r.json();for(const ev of data.events||[]){const st=ev.status?.type||{};if(!(st.completed||st.state==="post"||String(st.name||"").toUpperCase().includes("FINAL")))continue;const cc=ev.competitions?.[0]?.competitors||[];if(cc.length<2)continue;const sa=Number(cc[0].score),sb=Number(cc[1].score);if(!Number.isFinite(sa)||!Number.isFinite(sb)||sa===sb)continue;const w=Number(ev.week?.number||ev.competitions?.[0]?.week?.number);if(!Number.isInteger(w)||w<1||w>18)continue;out[w]??={};const win=sa>sb?cc[0]:cc[1],lose=sa>sb?cc[1]:cc[0];[win.team?.displayName,win.team?.shortDisplayName,win.team?.name,win.team?.abbreviation].forEach(x=>{if(x)out[w][cleanTeam(x)]="WIN"});[lose.team?.displayName,lose.team?.shortDisplayName,lose.team?.name,lose.team?.abbreviation].forEach(x=>{if(x)out[w][cleanTeam(x)]="LOSS"});}}catch(e){console.warn("Live results unavailable",e)}return out}
@@ -25,40 +25,57 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
  const r1=document.createElement("tr"),r2=document.createElement("tr");const ph=document.createElement("th");ph.className="playerHead";ph.rowSpan=2;ph.textContent="PLAYER";r1.appendChild(ph);
  for(let w=1;w<=18;w++){const h=document.createElement("th");h.colSpan=2;h.className="weekHead"+(w===weekNumber?" week2label":"");h.textContent="WEEK "+w;r1.appendChild(h);const a=document.createElement("th"),b=document.createElement("th");a.className=b.className="pickHead";a.textContent="PICK 1";b.textContent="PICK 2";r2.append(a,b)}head.append(r1,r2);
  allNames().sort((a,b)=>{const oa=playerIsEliminated(a),ob=playerIsEliminated(b);if(oa!==ob)return oa?1:-1;const pa=currentPlayers.find(x=>playerKey(x.name)===playerKey(a))||{},pb=currentPlayers.find(x=>playerKey(x.name)===playerKey(b))||{};const aa=Number(pa.picks_remaining)||0,bb=Number(pb.picks_remaining)||0;if(!oa&&!ob&&aa!==bb)return bb-aa;return a.localeCompare(b,undefined,{sensitivity:"base"})}).forEach(name=>{
-   const tr1=document.createElement("tr"),tr2=document.createElement("tr");const td=document.createElement("td");td.className="player";td.rowSpan=2;td.textContent=name;tr1.appendChild(td);
+   // One player = one row. Each week owns exactly TWO adjacent cells:
+   // PICK 1 then PICK 2. This keeps every historical pick under its own week.
+   const tr=document.createElement("tr");const td=document.createElement("td");td.className="player";td.textContent=name;tr.appendChild(td);
    const eliminated=playerIsEliminated(name),isMine=!!myInfo&&playerKey(name)===playerKey(myInfo.name);
    for(let w=1;w<=18;w++){
      const p=getWeekPlayer(w,name)||{},isCurrent=w===weekNumber,playerAllowedPicks=isCurrent?currentWeekAllowance(name):2;
-     let survivorRow=1;
+     const hideCurrentForOthers=isCurrent&&!isMine&&currentWeekPicksHidden();
+     let survivorSlot=1;
      if(isCurrent&&playerAllowedPicks===1&&!eliminated){
        const prior=getWeekPlayer(w-1,name)||{},pr1=exactPickResult(prior,1,w-1,res,live),pr2=exactPickResult(prior,2,w-1,res,live);
-       survivorRow=(pr1==="WIN")?1:(pr2==="WIN"?2:1);
+       survivorSlot=(pr1==="WIN")?1:(pr2==="WIN"?2:1);
      }
-     for(let row=1;row<=2;row++){
+     for(let slot=1;slot<=2;slot++){
        const cell=document.createElement("td");cell.className="pick";
        const onePickCurrent=isCurrent&&playerAllowedPicks===1&&!eliminated;
-       const actualSlot=onePickCurrent?1:row;
-       const value=onePickCurrent?(row===survivorRow?(p.team1||""):""):(actualSlot===1?(p.team1||""):(p.team2||""));
-       const result=onePickCurrent?(row===survivorRow?exactPickResult(p,1,w,res,live):""):exactPickResult(p,actualSlot,w,res,live);
-       const historical=w<weekNumber;
+       const actualSlot=onePickCurrent?1:slot;
+       const value=onePickCurrent?(slot===survivorSlot?(p.team1||""):""):(actualSlot===1?(p.team1||""):(p.team2||""));
+       const result=onePickCurrent?(slot===survivorSlot?exactPickResult(p,1,w,res,live):""):exactPickResult(p,actualSlot,w,res,live);
+       const historical=isHistoricalWeek(w);
        const expectedSlots=historical?expectedPicksForWeek(name,w,res,live):playerAllowedPicks;
-       const expectedThisSlot=historical?row<=expectedSlots:(onePickCurrent?row===survivorRow:playerAllowedPicks>=row);
-       const missedThisSlot=historical&&expectedThisSlot&&!value;
-       const blockedSlot=historical?!expectedThisSlot:(onePickCurrent?row!==survivorRow:playerAllowedPicks===0||(playerAllowedPicks===1&&row===2));
-       if(historical&&value)cell.textContent=value;
-       if(!historical&&value)cell.textContent=value;
+       const expectedThisSlot=historical?slot<=expectedSlots:(onePickCurrent?slot===survivorSlot:playerAllowedPicks>=slot);
+       const blockedSlot=historical?!expectedThisSlot:(onePickCurrent?slot!==survivorSlot:playerAllowedPicks===0||(playerAllowedPicks===1&&slot===2));
        const alreadyOutBeforeCurrent=expectedPicksForWeek(name,weekNumber,res,live)===0;
-       if(eliminated&&(w>weekNumber||(w===weekNumber&&alreadyOutBeforeCurrent))){cell.classList.add("loss");cell.innerHTML="<strong>XXX</strong><br><small>IN FOR REST OF YEAR</small>";}
-       else if(missedThisSlot){cell.classList.add("loss");cell.innerHTML="<strong>MISSED</strong>";}
-       else if(blockedSlot){cell.textContent="";}
-       else if(result==="WIN")cell.classList.add("win");
+       const editableCurrentSlot=!historical&&isCurrentEditableWeek(w)&&!eliminated&&isMine&&!blockedSlot;
+       if(hideCurrentForOthers){
+         cell.textContent="";
+       }else if(historical){
+         if(value){
+           if(result==="WIN")cell.classList.add("win");
+           else if(result==="LOSS")cell.classList.add("loss");
+           cell.textContent=value;
+         }else{
+           cell.classList.add("loss");
+           cell.innerHTML="<strong>MISSED</strong>";
+         }
+       }else if(eliminated&&(w===weekNumber&&alreadyOutBeforeCurrent)){
+         cell.classList.add("loss");cell.innerHTML="<strong>XXX</strong><br><small>IN FOR REST OF YEAR</small>";
+       }else if(blockedSlot){
+         cell.textContent="";
+       }else if(result==="WIN")cell.classList.add("win");
        else if(result==="LOSS")cell.classList.add("loss");
-       if(!eliminated&&isCurrent&&isMine){cell.classList.add("selectCell");const used=new Set(myInfo.used_teams||[]);const sel=makeSelect(value,myInfo.team2,used,true,result);sel.addEventListener("change",()=>{myInfo.team1=sel.value});cell.appendChild(sel);}
-       else if(!eliminated)cell.textContent=value||"";
-       (row===1?tr1:tr2).appendChild(cell);
+
+       if(!historical && editableCurrentSlot){
+         cell.classList.add("selectCell");const used=new Set(myInfo.used_teams||[]);const other=slot===1?myInfo.team2:myInfo.team1;const sel=makeSelect(value,other,used,true,result);sel.addEventListener("change",()=>{if(slot===1)myInfo.team1=sel.value;else myInfo.team2=sel.value});cell.appendChild(sel);
+       }else if(!historical&&!eliminated&&isCurrentEditableWeek(w)&&!blockedSlot){
+         cell.textContent=value||"";
+       }
+       tr.appendChild(cell);
      }
    }
-   body.append(tr1,tr2);
+   body.append(tr);
  });
 }
 async function renderEntry(){
@@ -91,3 +108,4 @@ $("saveBtn").onclick=async()=>{try{
 }catch(e){console.error(e);$("entryMsg").textContent=e.message||"Could not save picks."}};
 async function refresh(){await loadOdds();await loadData();await loadMe();await loadPickAllowance();await renderEntry();await renderBoard()}(async()=>{try{await loadOdds();await loadData();await loadMe();await loadPickAllowance();await renderEntry();await renderBoard()}catch(e){console.error(e);showStatus(e.message||"Could not connect to Supabase.","error")}})();
 </script></body></html>
+<!-- deployment refresh: Week 4 privacy fix -->
