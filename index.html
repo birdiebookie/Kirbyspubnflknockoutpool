@@ -108,4 +108,4 @@ $("saveBtn").onclick=async()=>{try{
 }catch(e){console.error(e);$("entryMsg").textContent=e.message||"Could not save picks."}};
 async function refresh(){await loadOdds();await loadData();await loadMe();await loadPickAllowance();await renderEntry();await renderBoard()}(async()=>{try{await loadOdds();await loadData();await loadMe();await loadPickAllowance();await renderEntry();await renderBoard()}catch(e){console.error(e);showStatus(e.message||"Could not connect to Supabase.","error")}})();
 </script></body></html>
-<!-- deployment refresh: Week 4 privacy fix -->
+<!-- deployment refresh: Week 4 Pick 2 MISSED display -->
