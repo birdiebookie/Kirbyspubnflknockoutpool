@@ -49,8 +49,8 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const blockedSlot=historical?!expectedThisSlot:(onePickCurrent?slot!==survivorSlot:playerAllowedPicks===0||(playerAllowedPicks===1&&slot===2));
        const alreadyOutBeforeCurrent=expectedPicksForWeek(name,weekNumber,res,live)===0;
        const editableCurrentSlot=!historical&&isCurrentEditableWeek(w)&&!eliminated&&isMine&&!blockedSlot;
-       if(hideCurrentForOthers){
-         cell.textContent="";
+       if(hideCurrentForOthers && !isMine){
+         cell.textContent=value ? "HIDDEN" : "PENDING";
        }else if(historical){
          if(value){
            if(result==="WIN")cell.classList.add("win");
