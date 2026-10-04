@@ -87,11 +87,6 @@ jobs:
                               key = ' '.join(str(name).lower().split())
                               bucket[key] = res
 
-          # Confirmed official correction: Detroit won Week 1.
-          weeks.setdefault('1', {})['det'] = 'WIN'
-          weeks['1']['detroit lions'] = 'WIN'
-          weeks['1']['lions'] = 'WIN'
-
           # Backward compatibility: results always represents Week 1.
           week1 = weeks.get('1', {})
           out = {
