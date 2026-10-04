@@ -81,8 +81,8 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
 async function renderEntry(){
  const e=$("entry");if(!myInfo){e.classList.add("hidden");return}e.classList.remove("hidden");
  const locked=isLocked(),eliminated=String(myInfo.status||"").toUpperCase()==="OUT",canEdit=!locked&&!eliminated&&allowedPicks>0;
- const stored=await fetchStoredResults(),currentPick=getWeekPlayer(weekNumber,myInfo.name)||myInfo;
- const currentResult1=exactPickResult(currentPick,1,weekNumber,stored,null),currentResult2=exactPickResult(currentPick,2,weekNumber,stored,null);
+ const [stored,live]=await Promise.all([fetchStoredResults(),loadLiveResults()]),currentPick=getWeekPlayer(weekNumber,myInfo.name)||myInfo;
+ const currentResult1=exactPickResult(currentPick,1,weekNumber,stored,live),currentResult2=exactPickResult(currentPick,2,weekNumber,stored,live);
  $("playerTitle").textContent="WEEK "+weekNumber+" PICKS — PLAYER: "+String(myInfo.name).toUpperCase();
  $("playerMessage").textContent=eliminated?"XXX — YOU LOST A PICK. YOU ARE OUT FOR THE REST OF THE YEAR.":locked?"Picks are locked after Sunday at 1:00 PM Eastern.":allowedPicks===1?"You have ONE pick this week because one of your two prior-week picks was missing or lost. The second pick is blocked.":allowedPicks===0?"You have no picks remaining this week.":"Choose your two teams. Your picks remain private to other players until the week is complete.";
  const wrap=$("pick2Wrap");wrap.style.display=allowedPicks===1?"none":"";
