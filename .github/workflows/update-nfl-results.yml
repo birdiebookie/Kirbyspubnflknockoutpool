@@ -61,8 +61,14 @@ jobs:
                   if sa == sb:
                       continue
 
-                  game_date = datetime.datetime.fromisoformat(ev.get('date','').replace('Z','+00:00'))
-                  game_week = ((game_date.astimezone(ET).date() - START.date()).days // 7) + 1
+                  # Use ESPN's official NFL week number when available.
+                  # Falling back to the date calculation keeps this working if ESPN omits it.
+                  espn_week = (ev.get('week') or {}).get('number')
+                  if espn_week:
+                      game_week = int(espn_week)
+                  else:
+                      game_date = datetime.datetime.fromisoformat(ev.get('date','').replace('Z','+00:00'))
+                      game_week = ((game_date.astimezone(ET).date() - START.date()).days // 7) + 1
                   if game_week < 1 or game_week > 18:
                       continue
 
