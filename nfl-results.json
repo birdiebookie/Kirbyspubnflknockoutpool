@@ -97,7 +97,7 @@
     "washington commanders": "LOSS",
     "wsh": "LOSS"
   },
-  "updated_at": "2026-10-04T15:53:04.704808+00:00",
+  "updated_at": "2026-10-04T19:10:08.153648+00:00",
   "weeks": {
     "1": {
       "49ers": "WIN",
@@ -397,9 +397,15 @@
       "browns": "WIN",
       "cle": "WIN",
       "cleveland browns": "WIN",
+      "colts": "WIN",
+      "commanders": "LOSS",
+      "ind": "WIN",
+      "indianapolis colts": "WIN",
       "pit": "LOSS",
       "pittsburgh steelers": "LOSS",
-      "steelers": "LOSS"
+      "steelers": "LOSS",
+      "washington commanders": "LOSS",
+      "wsh": "LOSS"
     }
   }
 }
