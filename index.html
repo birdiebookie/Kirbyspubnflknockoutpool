@@ -50,7 +50,10 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const alreadyOutBeforeCurrent=expectedPicksForWeek(name,weekNumber,res,live)===0;
        const editableCurrentSlot=!historical&&isCurrentEditableWeek(w)&&!eliminated&&isMine&&!blockedSlot;
        if(hideCurrentForOthers && !isMine){
-         if(slot===2&&!value){cell.classList.add("loss");cell.innerHTML="<strong>MISSED</strong>";}else cell.textContent=value ? "HIDDEN" : "";
+         // Current-week picks are private. Do NOT label an empty current-week
+         // Pick 2 as MISSED; that incorrectly carries the historical missed
+         // status into the new week. Leave both current-week cells blank.
+         cell.textContent="";
        }else if(historical){
          if(value){
            if(result==="WIN")cell.classList.add("win");
