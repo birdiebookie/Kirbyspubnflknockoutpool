@@ -25,7 +25,7 @@ h1{font-size:28px;margin:0}.sub{font-size:15px;font-weight:800;margin:3px 0 12px
 .weekCell{padding:0!important;vertical-align:middle}
 .pickslot{min-height:48px;padding:8px 5px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #777;font-size:16px;line-height:1.05}
 .pickslot:last-child{border-bottom:0}
-.weekStack{display:grid;width:100%;grid-template-rows:48px 48px}
+.weekStack{display:flex;flex-direction:column;width:100%}.pickslot{height:48px;min-height:48px}
 .win{background:#fff200!important}.loss{background:#f00!important}.pending{background:#fff!important}.week2NotPicked{background:#f00!important}
 .status{padding:9px 5px;font-size:15px}.status.active{background:#70ad47}.status.out{background:#f00}
 .activeRow td{background:#fff}.outRow td{background:#f5f5f5}
@@ -182,21 +182,16 @@ function render(rows,current,live,stored,currentPlayers){
      firstSlot.style.gridRow=String(survivorRow);
      firstSlot.style.gridColumn="1";
      const spacer=document.createElement("div");
-     spacer.className="pickslot pending";
      spacer.className="pickslot pending week2NotPicked";
      spacer.textContent="NOT PICKED";
-     spacer.style.gridRow=String(survivorRow===1?2:1);
-     spacer.style.gridColumn="1";
      stack.appendChild(firstSlot);
      stack.appendChild(spacer);
    }else{
-     firstSlot.style.gridRow="1";
-     firstSlot.style.gridColumn="1";
+     
      const secondSlot=makeSlot(p.team2,r2,hideCurrent);
      if(!isCurrent && !p.team2){secondSlot.className="pickslot pending week2NotPicked";secondSlot.textContent="MISSED";}
      if(hideCurrent && p.team2)secondSlot.textContent="PICKED";
-     secondSlot.style.gridRow="2";
-     secondSlot.style.gridColumn="1";
+     
      stack.appendChild(firstSlot);
      stack.appendChild(secondSlot);
    }
@@ -212,7 +207,7 @@ function render(rows,current,live,stored,currentPlayers){
   s.textContent=rec.isOut?"OUT":(rec.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");
   tr.appendChild(s);body.appendChild(tr);
  }
- $("notice").textContent="WEEKS 1–"+current+" • ACTIVE PLAYERS • PICKS SIDE-BY-SIDE";
+ $("notice").textContent="WEEKS 1–"+current+" • ACTIVE PLAYERS • PICKS TOP-TO-BOTTOM";
 }
 async function load(){
  try{
