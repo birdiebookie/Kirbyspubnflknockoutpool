@@ -135,9 +135,15 @@ function render(rows,current,live,stored,currentPlayers){
   return {name,rule,storedStatus,isOut:storedStatus==="OUT"||storedStatus==="DROPPED"||rule.out};
  });
  // Keep every player visible. Active players are listed first; OUT players stay at the bottom.
+ records.forEach(rec=>{
+  const lastCompleted=Math.max(1,current-1);
+  const p=(rows[lastCompleted]||[]).find(x=>key(x.name)===key(rec.name))||{};
+  const [r1,r2]=pickResult(p,lastCompleted,live,stored);
+  rec.lastWeekWin=(r1==="WIN"||r2==="WIN");
+ });
  records.sort((a,b)=>{
+  if(a.lastWeekWin!==b.lastWeekWin)return a.lastWeekWin?-1:1;
   if(a.isOut!==b.isOut)return a.isOut?1:-1;
-  if(!a.isOut&&a.rule.allowed!==b.rule.allowed)return b.rule.allowed-a.rule.allowed;
   return a.name.localeCompare(b.name);
  });
  const h=document.createElement("tr");
