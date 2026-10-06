@@ -218,9 +218,7 @@ async function load(){
  try{
   await loadMe();
   const currentPlayers=await rpc("get_leaderboard",{})||[];
-  const {data:weekData,error}=await db.from("weeks").select("week_number").order("week_number",{ascending:false});
-  if(error)throw error;
-  const current=Number(weekData?.[0]?.week_number)||3;
+  const current=Number(currentPlayers?.[0]?.week_number)||5;
   const rows={};
   for(let w=1;w<=current;w++)rows[w]=await rpc("get_leaderboard_for_week",{p_week:w})||[];
   const [live,stored]=await Promise.all([liveResults(),storedResults()]);
