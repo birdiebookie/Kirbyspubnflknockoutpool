@@ -23,10 +23,8 @@ function easternDateKey(){const parts=new Intl.DateTimeFormat("en-US",{timeZone:
 async function loadLiveResults(){const out={};try{const now=new Date();const keys=[];for(let i=0;i<8;i++){const d=new Date(now.getTime()-i*86400000);const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d);const p={};for(const x of parts)p[x.type]=x.value;keys.push(p.year+p.month+p.day)}const responses=await Promise.all(keys.map(k=>fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates="+k+"&limit=100",{cache:"no-store"}).catch(()=>null)));for(const r of responses){if(!r||!r.ok)continue;const data=await r.json();for(const ev of data.events||[]){const st=ev.status?.type||{};if(!(st.completed||st.state==="post"||String(st.name||"").toUpperCase().includes("FINAL")))continue;const cc=ev.competitions?.[0]?.competitors||[];if(cc.length<2)continue;const sa=Number(cc[0].score),sb=Number(cc[1].score);if(!Number.isFinite(sa)||!Number.isFinite(sb)||sa===sb)continue;const w=Number(ev.week?.number||ev.competitions?.[0]?.week?.number);if(!Number.isInteger(w)||w<1||w>18)continue;out[w]??={};const win=sa>sb?cc[0]:cc[1],lose=sa>sb?cc[1]:cc[0];[win.team?.displayName,win.team?.shortDisplayName,win.team?.name,win.team?.abbreviation].forEach(x=>{if(x)out[w][cleanTeam(x)]="WIN"});[lose.team?.displayName,lose.team?.shortDisplayName,lose.team?.name,lose.team?.abbreviation].forEach(x=>{if(x)out[w][cleanTeam(x)]="LOSS"});}}}catch(e){console.warn("Live results unavailable",e)}return out}
 async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResults(),loadLiveResults()]);const head=$("weeklyHead"),body=$("weeklyBody");head.innerHTML="";body.innerHTML="";
  const r1=document.createElement("tr"),r2=document.createElement("tr");const ph=document.createElement("th");ph.className="playerHead";ph.rowSpan=2;ph.textContent="PLAYER";r1.appendChild(ph);
- for(let w=1;w<=18;w++){const h=document.createElement("th");h.colSpan=2;h.className="weekHead"+(w===weekNumber?" week2label":"");h.textContent="WEEK "+w;r1.appendChild(h);const a=document.createElement("th"),b=document.createElement("th");a.className=b.className="pickHead";a.textContent="PICK 1";b.textContent="PICK 2";r2.append(a,b)}head.append(r1,r2);
- allNames().sort((a,b)=>{const lastCompletedWeek=Math.max(1,Number(weekNumber)-1);const pa=getWeekPlayer(lastCompletedWeek,a)||{},pb=getWeekPlayer(lastCompletedWeek,b)||{};const ar1=exactPickResult(pa,1,lastCompletedWeek,res,live),ar2=exactPickResult(pa,2,lastCompletedWeek,res,live),br1=exactPickResult(pb,1,lastCompletedWeek,res,live),br2=exactPickResult(pb,2,lastCompletedWeek,res,live);const aWin=ar1==="WIN"||ar2==="WIN",bWin=br1==="WIN"||br2==="WIN";if(aWin!==bWin)return aWin?-1:1;const oa=playerIsEliminated(a),ob=playerIsEliminated(b);if(oa!==ob)return oa?1:-1;return a.localeCompare(b,undefined,{sensitivity:"base"})}).forEach(name=>{
-   // One player = one row. Each week owns exactly TWO adjacent cells:
-   // PICK 1 then PICK 2. This keeps every historical pick under its own week.
+ for(let w=1;w<=18;w++){const h=document.createElement("th");h.colSpan=1;h.className="weekHead"+(w===weekNumber?" week2label":"");h.textContent="WEEK "+w;r1.appendChild(h);const a=document.createElement("th");a.colSpan=1;a.className="pickHead";a.textContent="PICK 1 / PICK 2";r2.appendChild(a)}head.append(r1,r2);
+ allNames().sort((a,b)=>{const oa=playerIsEliminated(a),ob=playerIsEliminated(b);if(oa!==ob)return oa?1:-1;const pa=currentPlayers.find(x=>playerKey(x.name)===playerKey(a))||{},pb=currentPlayers.find(x=>playerKey(x.name)===playerKey(b))||{};const aa=Number(pa.picks_remaining)||0,bb=Number(pb.picks_remaining)||0;if(!oa&&!ob&&aa!==bb)return bb-aa;return a.localeCompare(b,undefined,{sensitivity:"base"})}).forEach(name=>{
    const tr=document.createElement("tr");const td=document.createElement("td");td.className="player";td.textContent=name;tr.appendChild(td);
    const eliminated=playerIsEliminated(name),isMine=!!myInfo&&playerKey(name)===playerKey(myInfo.name);
    for(let w=1;w<=18;w++){
@@ -37,51 +35,44 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const prior=getWeekPlayer(w-1,name)||{},pr1=exactPickResult(prior,1,w-1,res,live),pr2=exactPickResult(prior,2,w-1,res,live);
        survivorSlot=(pr1==="WIN")?1:(pr2==="WIN"?2:1);
      }
+     const weekCell=document.createElement("td");weekCell.className="weekStackCell";
+     const stack=document.createElement("div");stack.className="weekStack";
      for(let slot=1;slot<=2;slot++){
-       const cell=document.createElement("td");cell.className="pick";
        const onePickCurrent=isCurrent&&playerAllowedPicks===1&&!eliminated;
        const actualSlot=onePickCurrent?1:slot;
        const value=onePickCurrent?(slot===survivorSlot?(p.team1||""):""):(actualSlot===1?(p.team1||""):(p.team2||""));
-       let result=onePickCurrent?(slot===survivorSlot?exactPickResult(p,1,w,res,live):""):exactPickResult(p,actualSlot,w,res,live);if(Number(w)===4&&value&&WEEK4_FORCED_WINNERS.has(cleanTeam(value)))result="WIN";
+       let result=onePickCurrent?(slot===survivorSlot?exactPickResult(p,1,w,res,live):""):exactPickResult(p,actualSlot,w,res,live);
+       if(Number(w)===4&&value&&WEEK4_FORCED_WINNERS.has(cleanTeam(value)))result="WIN";
        const historical=isHistoricalWeek(w);
        const expectedSlots=historical?expectedPicksForWeek(name,w,res,live):playerAllowedPicks;
        const expectedThisSlot=historical?slot<=expectedSlots:(onePickCurrent?slot===survivorSlot:playerAllowedPicks>=slot);
        const blockedSlot=historical?!expectedThisSlot:(onePickCurrent?slot!==survivorSlot:playerAllowedPicks===0||(playerAllowedPicks===1&&slot===2));
        const alreadyOutBeforeCurrent=expectedPicksForWeek(name,weekNumber,res,live)===0;
        const editableCurrentSlot=!historical&&isCurrentEditableWeek(w)&&!eliminated&&isMine&&!blockedSlot;
-       if(hideCurrentForOthers && !isMine){
-         // Current-week picks are private. Do NOT label an empty current-week
-         // Pick 2 as MISSED; that incorrectly carries the historical missed
-         // status into the new week. Leave both current-week cells blank.
+       const cell=document.createElement("div");cell.className="pick";
+       if(hideCurrentForOthers&&!isMine){
          cell.textContent="";
        }else if(historical){
-         if(value){
-           if(result==="WIN")cell.classList.add("win");
-           else if(result==="LOSS")cell.classList.add("loss");
-           cell.textContent=value;
-         }else{
-           cell.classList.add("loss");
-           cell.innerHTML="<strong>MISSED</strong>";
-         }
+         if(value){if(result==="WIN")cell.classList.add("win");else if(result==="LOSS")cell.classList.add("loss");cell.textContent=value}
+         else{cell.classList.add("loss");cell.innerHTML="<strong>MISSED</strong>"}
        }else if(eliminated&&(w===weekNumber&&alreadyOutBeforeCurrent)){
          cell.classList.add("loss");cell.innerHTML="<strong>XXX</strong><br><small>IN FOR REST OF YEAR</small>";
        }else if(blockedSlot){
          cell.textContent="";
        }else if(result==="WIN")cell.classList.add("win");
        else if(result==="LOSS")cell.classList.add("loss");
-
-       if(!historical && editableCurrentSlot){
+       if(!historical&&editableCurrentSlot){
          cell.classList.add("selectCell");const used=new Set(myInfo.used_teams||[]);const other=slot===1?myInfo.team2:myInfo.team1;const sel=makeSelect(value,other,used,true,result);sel.addEventListener("change",()=>{if(slot===1)myInfo.team1=sel.value;else myInfo.team2=sel.value});cell.appendChild(sel);
        }else if(!historical&&!eliminated&&isCurrentEditableWeek(w)&&!blockedSlot){
          cell.textContent=value||"";
        }
-       tr.appendChild(cell);
+       stack.appendChild(cell);
      }
+     weekCell.appendChild(stack);tr.appendChild(weekCell);
    }
    body.append(tr);
  });
-}
-async function renderEntry(){
+}async function renderEntry(){
  const e=$("entry");if(!myInfo){e.classList.add("hidden");return}e.classList.remove("hidden");
  const locked=isLocked(),eliminated=String(myInfo.status||"").toUpperCase()==="OUT",canEdit=!locked&&!eliminated&&allowedPicks>0;
  const [stored,live]=await Promise.all([fetchStoredResults(),loadLiveResults()]),currentPick=getWeekPlayer(weekNumber,myInfo.name)||myInfo;
