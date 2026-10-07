@@ -207,7 +207,7 @@ function render(rows,current,live,stored,currentPlayers){
   s.textContent=rec.isOut?"OUT":(rec.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");
   tr.appendChild(s);body.appendChild(tr);
  }
- $("notice").textContent="WEEKS 1–"+current+" • ACTIVE PLAYERS • PICKS TOP-TO-BOTTOM";
+ const inCount=records.filter(r=>!r.isOut).length; const outCount=records.filter(r=>r.isOut).length; $("notice").textContent="WEEKS 1–"+current+" • "+inCount+" IN • "+outCount+" OUT • PICKS TOP-TO-BOTTOM";
 }
 async function load(){
  try{
