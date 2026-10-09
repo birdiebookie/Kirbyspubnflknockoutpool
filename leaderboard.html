@@ -97,6 +97,9 @@ function pickResult(p,week,live,stored){
  const sr=(stored.weeks&&stored.weeks[String(week)])||stored[String(week)]||{};
  if(p?.team1)r1=String(p.team1_result||"").toUpperCase()||resultFor(p.team1,lr)||resultFor(p.team1,sr);
  if(p?.team2)r2=String(p.team2_result||"").toUpperCase()||resultFor(p.team2,lr)||resultFor(p.team2,sr);
+ // Week 4 Browns pick should display as a win (yellow).
+ if(Number(week)===4&&clean(p?.team1).includes("browns"))r1="WIN";
+ if(Number(week)===4&&clean(p?.team2).includes("browns"))r2="WIN";
  return [r1,r2];
 }
 function makeSlot(team,result,hidden){
