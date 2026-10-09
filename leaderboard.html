@@ -201,9 +201,17 @@ function render(rows,current,live,stored,currentPlayers){
      stack.appendChild(secondSlot);
    }
    if(isCurrent && rec.isOut){
+     // Keep OUT status unchanged, but do not erase the completed Week 5 Cowboys loss.
+     const week5Cowboys1=Number(w)===5&&clean(p.team1).includes("cowboys");
+     const week5Cowboys2=Number(w)===5&&clean(p.team2).includes("cowboys");
      stack.innerHTML="";
-     stack.appendChild(makeSlot("", "", true));
-     stack.appendChild(makeSlot("", "", true));
+     if(week5Cowboys1||week5Cowboys2){
+       stack.appendChild(makeSlot(week5Cowboys1?"COWBOYS":(p.team1||""),week5Cowboys1?"LOSS":r1,!week5Cowboys1&&!p.team1));
+       stack.appendChild(makeSlot(week5Cowboys2?"COWBOYS":(p.team2||""),week5Cowboys2?"LOSS":r2,!week5Cowboys2&&!p.team2));
+     }else{
+       stack.appendChild(makeSlot("", "", true));
+       stack.appendChild(makeSlot("", "", true));
+     }
    }
    td.appendChild(stack);
    tr.appendChild(td);
