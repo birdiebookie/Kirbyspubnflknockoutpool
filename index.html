@@ -42,6 +42,9 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const actualSlot=onePickCurrent?1:slot;
        const value=onePickCurrent?(slot===survivorSlot?(p.team1||""):""):(actualSlot===1?(p.team1||""):(p.team2||""));
        let result=onePickCurrent?(slot===survivorSlot?exactPickResult(p,1,w,res,live):""):exactPickResult(p,actualSlot,w,res,live);
+       // The Week 5 Cowboys game is final. Force the known Dallas selection to show
+       // the actual team name and loss color even if this viewer's results feed is stale.
+       if(Number(w)===5&&value&&cleanTeam(value).includes("cowboys"))result="LOSS";
        if(Number(w)===4&&value&&WEEK4_FORCED_WINNERS.has(cleanTeam(value)))result="WIN";
        const historical=isHistoricalWeek(w);
        const expectedSlots=historical?expectedPicksForWeek(name,w,res,live):playerAllowedPicks;
