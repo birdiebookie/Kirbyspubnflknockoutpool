@@ -164,7 +164,7 @@ function render(rows,current,live,stored,currentPlayers){
    // WEEK 3 PICKS ARE NOW VISIBLE TO EVERYONE.
    // Display only — no pick or result data is changed.
    const hideCurrent=isCurrent&&currentWeekPicksHidden();
-   // Week 5: show the actual Cowboys pick and apply its final LOSS color.
+   // Week 5: show actual Cowboys picks and mark them as losses.
    const revealCowboys1=Number(w)===5&&clean(p.team1).includes("cowboys");
    const firstSlot=makeSlot(p.team1,r1,hideCurrent&&!revealCowboys1);
    if(hideCurrent && p.team1 && !revealCowboys1)firstSlot.textContent="PICKED";
