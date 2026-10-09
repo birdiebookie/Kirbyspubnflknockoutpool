@@ -164,12 +164,11 @@ function render(rows,current,live,stored,currentPlayers){
    // WEEK 3 PICKS ARE NOW VISIBLE TO EVERYONE.
    // Display only — no pick or result data is changed.
    const hideCurrent=isCurrent&&currentWeekPicksHidden();
-   // STEP 1 ONLY: reveal the Week 5 Cowboys pick after Dallas has played.
-   // Keep every other current-week pick hidden; do not apply the result color here.
-   const revealCowboys1=isCurrent&&Number(w)===5&&clean(p.team1).includes("cowboys");
+   // Week 5: show the actual Cowboys pick and apply its final LOSS color.
+   const revealCowboys1=Number(w)===5&&clean(p.team1).includes("cowboys");
    const firstSlot=makeSlot(p.team1,r1,hideCurrent&&!revealCowboys1);
    if(hideCurrent && p.team1 && !revealCowboys1)firstSlot.textContent="PICKED";
-   if(revealCowboys1){firstSlot.textContent="COWBOYS";firstSlot.className="pickslot pending";}
+   if(revealCowboys1){firstSlot.textContent="COWBOYS";firstSlot.className="pickslot loss";}
    // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
    // Do not affect Week 1, Week 3, Week 2 second slot, or any pick/result logic.
    if(!isCurrent && !p.team1){firstSlot.className="pickslot pending week2NotPicked";firstSlot.textContent="MISSED";}
@@ -192,11 +191,11 @@ function render(rows,current,live,stored,currentPlayers){
      stack.appendChild(spacer);
    }else{
      
-     const revealCowboys2=isCurrent&&Number(w)===5&&clean(p.team2).includes("cowboys");
+     const revealCowboys2=Number(w)===5&&clean(p.team2).includes("cowboys");
      const secondSlot=makeSlot(p.team2,r2,hideCurrent&&!revealCowboys2);
      if(!isCurrent && !p.team2){secondSlot.className="pickslot pending week2NotPicked";secondSlot.textContent="MISSED";}
      if(hideCurrent && p.team2 && !revealCowboys2)secondSlot.textContent="PICKED";
-     if(revealCowboys2){secondSlot.textContent="COWBOYS";secondSlot.className="pickslot pending";}
+     if(revealCowboys2){secondSlot.textContent="COWBOYS";secondSlot.className="pickslot loss";}
      
      stack.appendChild(firstSlot);
      stack.appendChild(secondSlot);
