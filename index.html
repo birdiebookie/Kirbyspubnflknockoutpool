@@ -54,7 +54,9 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        const editableCurrentSlot=!historical&&isCurrentEditableWeek(w)&&!eliminated&&isMine&&!blockedSlot;
        const cell=document.createElement("div");cell.className="pick";
        if(hideCurrentForOthers&&!isMine){
-         cell.textContent="";
+         /* Show submission status only; never reveal the selected team before lock. */
+         if(blockedSlot||eliminated)cell.textContent="";
+         else cell.textContent=value?"PICKED":"NOT PICKED";
        }else if(historical){
          if(value){if(result==="WIN")cell.classList.add("win");else if(result==="LOSS")cell.classList.add("loss");cell.textContent=value}
          else{cell.classList.add("loss");cell.innerHTML="<strong>MISSED</strong>"}
@@ -69,7 +71,7 @@ async function renderBoard(){const [res,live]=await Promise.all([fetchStoredResu
        }else if(!historical&&!eliminated&&isCurrentEditableWeek(w)&&!blockedSlot){
          cell.textContent=value||"";
        }
-       /* Final privacy guard: never render another player’s current-week selection before the Sunday 1 PM ET lock. */if(isCurrent&&!isMine&&currentWeekPicksHidden()){cell.textContent="";cell.className="pick";}stack.appendChild(cell);
+       /* Final privacy guard: hide team names, but preserve PICKED / NOT PICKED status for valid slots. */if(isCurrent&&!isMine&&currentWeekPicksHidden()){if(blockedSlot||eliminated){cell.textContent="";cell.className="pick";}else{cell.textContent=value?"PICKED":"NOT PICKED";cell.className="pick "+(value?"picked":"pending");}}stack.appendChild(cell);
      }
      weekCell.appendChild(stack);tr.appendChild(weekCell);
    }
