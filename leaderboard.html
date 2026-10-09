@@ -164,14 +164,11 @@ function render(rows,current,live,stored,currentPlayers){
    const td=document.createElement("td");td.className="weekCell";
    const stack=document.createElement("div");stack.className="weekStack";
    const isCurrent=w===current;
-   // WEEK 3 PICKS ARE NOW VISIBLE TO EVERYONE.
-   // Display only — no pick or result data is changed.
+   // Before the Sunday 1 PM Eastern lock, show submission status only.
+   // Never reveal another player's selected team in the current week.
    const hideCurrent=isCurrent&&currentWeekPicksHidden();
-   // Week 5: show actual Cowboys picks and mark them as losses.
-   const revealCowboys1=Number(w)===5&&clean(p.team1).includes("cowboys");
-   const firstSlot=makeSlot(p.team1,r1,hideCurrent&&!revealCowboys1);
-   if(hideCurrent && p.team1 && !revealCowboys1)firstSlot.textContent="PICKED";
-   if(revealCowboys1){firstSlot.textContent="COWBOYS";firstSlot.className="pickslot loss";}
+   const firstSlot=makeSlot(p.team1,r1,hideCurrent);
+   if(hideCurrent)firstSlot.textContent=p.team1?"PICKED":"NOT PICKED";
    // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
    // Do not affect Week 1, Week 3, Week 2 second slot, or any pick/result logic.
    if(!isCurrent && !p.team1){firstSlot.className="pickslot pending week2NotPicked";firstSlot.textContent="MISSED";}
@@ -194,23 +191,22 @@ function render(rows,current,live,stored,currentPlayers){
      stack.appendChild(spacer);
    }else{
      
-     const revealCowboys2=Number(w)===5&&clean(p.team2).includes("cowboys");
-     const secondSlot=makeSlot(p.team2,r2,hideCurrent&&!revealCowboys2);
+     const secondSlot=makeSlot(p.team2,r2,hideCurrent);
      if(!isCurrent && !p.team2){secondSlot.className="pickslot pending week2NotPicked";secondSlot.textContent="MISSED";}
-     if(hideCurrent && p.team2 && !revealCowboys2)secondSlot.textContent="PICKED";
-     if(revealCowboys2){secondSlot.textContent="COWBOYS";secondSlot.className="pickslot loss";}
+     if(hideCurrent)secondSlot.textContent=p.team2?"PICKED":"NOT PICKED";
      
      stack.appendChild(firstSlot);
      stack.appendChild(secondSlot);
    }
    if(isCurrent && rec.isOut){
-     // Keep OUT status unchanged, but do not erase the completed Week 5 Cowboys loss.
-     const week5Cowboys1=Number(w)===5&&clean(p.team1).includes("cowboys");
-     const week5Cowboys2=Number(w)===5&&clean(p.team2).includes("cowboys");
+     // OUT players remain OUT. During the current-week privacy window,
+     // show only submission status and never reveal their selected team.
      stack.innerHTML="";
-     if(week5Cowboys1||week5Cowboys2){
-       stack.appendChild(makeSlot(week5Cowboys1?"COWBOYS":(p.team1||""),week5Cowboys1?"LOSS":r1,!week5Cowboys1&&!p.team1));
-       stack.appendChild(makeSlot(week5Cowboys2?"COWBOYS":(p.team2||""),week5Cowboys2?"LOSS":r2,!week5Cowboys2&&!p.team2));
+     if(isCurrent&&hideCurrent){
+       stack.appendChild(makeSlot(p.team1,r1,true));
+       stack.lastChild.textContent=p.team1?"PICKED":"NOT PICKED";
+       stack.appendChild(makeSlot(p.team2,r2,true));
+       stack.lastChild.textContent=p.team2?"PICKED":"NOT PICKED";
      }else{
        stack.appendChild(makeSlot("", "", true));
        stack.appendChild(makeSlot("", "", true));
