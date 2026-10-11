@@ -97,7 +97,7 @@
     "washington commanders": "LOSS",
     "wsh": "LOSS"
   },
-  "updated_at": "2026-10-11T12:39:54.010442+00:00",
+  "updated_at": "2026-10-11T17:48:05.256706+00:00",
   "weeks": {
     "1": {
       "49ers": "WIN",
@@ -496,6 +496,12 @@
       "cowboys": "LOSS",
       "dal": "LOSS",
       "dallas cowboys": "LOSS",
+      "eagles": "LOSS",
+      "jacksonville jaguars": "WIN",
+      "jaguars": "WIN",
+      "jax": "WIN",
+      "phi": "LOSS",
+      "philadelphia eagles": "LOSS",
       "tampa bay buccaneers": "WIN",
       "tb": "WIN"
     }
