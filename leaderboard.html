@@ -144,7 +144,8 @@ function render(rows,current,live,stored,currentPlayers){
   const [r1,r2]=pickResult(p,lastCompleted,live,stored);
   rec.lastWeekWin=(r1==="WIN"||r2==="WIN");
  });
- records.sort((a,b)=>{
+ const visibleRecords=records.filter(rec=>!rec.isOut);
+ visibleRecords.sort((a,b)=>{
   if(a.lastWeekWin!==b.lastWeekWin)return a.lastWeekWin?-1:1;
   if(a.isOut!==b.isOut)return a.isOut?1:-1;
   return a.name.localeCompare(b.name);
@@ -155,7 +156,7 @@ function render(rows,current,live,stored,currentPlayers){
  const st=document.createElement("th");st.className="statusHead";st.textContent="STATUS";h.appendChild(st);
  $("head").innerHTML="";$("head").appendChild(h);
  const body=$("body");body.innerHTML="";
- for(const rec of records){
+ for(const rec of visibleRecords){
   const tr=document.createElement("tr");tr.className=rec.isOut?"outRow":"activeRow";
   const nm=document.createElement("td");nm.className="playerNameCell";nm.textContent=rec.name;tr.appendChild(nm);
   for(let w=1;w<=current;w++){
@@ -219,7 +220,7 @@ function render(rows,current,live,stored,currentPlayers){
   s.textContent=rec.isOut?"OUT":(rec.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");
   tr.appendChild(s);body.appendChild(tr);
  }
- const inCount=10; const outCount=21; $("notice").textContent="WEEKS 1–"+current+" • 10 IN • 21 OUT • PICKS TOP-TO-BOTTOM";
+ $("notice").textContent="WEEKS 1–"+current+" • "+visibleRecords.length+" PLAYERS STILL IN • PICKS TOP-TO-BOTTOM";
 }
 async function load(){
  try{
