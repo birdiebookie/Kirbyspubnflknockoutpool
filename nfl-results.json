@@ -97,7 +97,7 @@
     "washington commanders": "LOSS",
     "wsh": "LOSS"
   },
-  "updated_at": "2026-10-18T13:30:05.725215+00:00",
+  "updated_at": "2026-10-18T16:49:23.956086+00:00",
   "weeks": {
     "1": {
       "49ers": "WIN",
@@ -581,9 +581,15 @@
       "broncos": "WIN",
       "den": "WIN",
       "denver broncos": "WIN",
+      "hou": "WIN",
+      "houston texans": "WIN",
+      "jacksonville jaguars": "LOSS",
+      "jaguars": "LOSS",
+      "jax": "LOSS",
       "sea": "LOSS",
       "seahawks": "LOSS",
-      "seattle seahawks": "LOSS"
+      "seattle seahawks": "LOSS",
+      "texans": "WIN"
     }
   }
 }
