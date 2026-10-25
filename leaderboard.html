@@ -32,7 +32,19 @@ h1{font-size:28px;margin:0}.sub{font-size:15px;font-weight:800;margin:3px 0 12px
 .outRow{opacity:.95}
 .legend{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;font-size:12px;font-weight:900}
 .legend span{border:1px solid #777;padding:4px 8px}.legend .yellow{background:#fff200}.legend .red{background:#f00}.legend .green{background:#70ad47}.legend .white{background:#fff}
-@media(max-width:700px){.wrap{width:99%}.sheet{min-width:760px}.pickslot{font-size:14px}.playerNameCell{font-size:15px}}
+@media(max-width:700px){
+ .wrap{width:100%;margin:8px auto 20px;padding:0 4px}
+ h1{font-size:22px}.sub{font-size:13px}
+ .tableWrap{overflow-x:visible}
+ .sheet{width:100%;min-width:0;table-layout:fixed}
+ .sheet th,.sheet td{border-width:1px}
+ .playerName,.playerNameCell{width:29%;font-size:12px;padding:5px 3px!important;overflow-wrap:anywhere}
+ .weekHead{font-size:12px!important;padding:4px 1px!important}
+ .statusHead{width:19%;font-size:11px}
+ .status{font-size:10px;padding:4px 1px;overflow-wrap:anywhere}
+ .pickslot{font-size:11px;height:40px;min-height:40px;padding:3px 1px;overflow-wrap:anywhere}
+ .notice{font-size:13px;padding:8px}
+}
 </style>
 </head>
 <body>
@@ -197,18 +209,15 @@ function render(rows,current,live,stored,currentPlayers){
      stack.appendChild(firstSlot);
      stack.appendChild(secondSlot);
    }
-   if(isCurrent && rec.isOut){
-     // OUT players remain OUT. During the current-week privacy window,
-     // show only submission status and never reveal their selected team.
-     stack.innerHTML="";
-     if(isCurrent&&hideCurrent){
-       stack.appendChild(makeSlot(p.team1,r1,true));
-       stack.lastChild.textContent=p.team1?"PICKED":"NOT PICKED";
-       stack.appendChild(makeSlot(p.team2,r2,true));
-       stack.lastChild.textContent=p.team2?"PICKED":"NOT PICKED";
-     }else{
-       stack.appendChild(makeSlot("", "", true));
-       stack.appendChild(makeSlot("", "", true));
+   if(rec.isOut){
+     // Preserve historical picks/results. For the current week, hide team names
+     // before lock but still show whether a pick was submitted.
+     if(isCurrent){
+       stack.innerHTML="";
+       const out1=makeSlot("", "", true),out2=makeSlot("", "", true);
+       out1.textContent=hideCurrent?(p.team1?"PICKED":"NOT PICKED"):(p.team1||"NOT PICKED");
+       out2.textContent=hideCurrent?(p.team2?"PICKED":"NOT PICKED"):(p.team2||"NOT PICKED");
+       stack.appendChild(out1);stack.appendChild(out2);
      }
    }
    td.appendChild(stack);
