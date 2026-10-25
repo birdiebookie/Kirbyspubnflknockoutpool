@@ -112,7 +112,7 @@ function makeSlot(team,result,hidden){
 }
 function getRule(name,rows,current,live,stored){
  let failures=0;
- for(let w=1;w<current;w++){
+ for(let w=7;w<current;w++){
   if(failures>=2)break;
   const p=(rows[w]||[]).find(x=>key(x.name)===key(name))||{};
   const allowed=Math.max(0,2-failures);
@@ -139,7 +139,7 @@ function render(rows,current,live,stored,currentPlayers){
  });
  // Keep every player visible. Active players are listed first; OUT players stay at the bottom.
  records.forEach(rec=>{
-  const lastCompleted=Math.max(1,current-1);
+  const lastCompleted=Math.max(7,current-1);
   const p=(rows[lastCompleted]||[]).find(x=>key(x.name)===key(rec.name))||{};
   const [r1,r2]=pickResult(p,lastCompleted,live,stored);
   rec.lastWeekWin=(r1==="WIN"||r2==="WIN");
@@ -148,14 +148,14 @@ function render(rows,current,live,stored,currentPlayers){
  visibleRecords.sort((a,b)=>a.name.localeCompare(b.name));
  const h=document.createElement("tr");
  const n=document.createElement("th");n.className="playerName";n.textContent="PLAYER";h.appendChild(n);
- for(let w=1;w<=current;w++){const th=document.createElement("th");th.className="weekHead "+(w===1?"week1Head":"");th.textContent="WEEK "+w;h.appendChild(th)}
+ for(let w=7;w<=current;w++){const th=document.createElement("th");th.className="weekHead "+(w===7?"week1Head":"");th.textContent="WEEK "+w;h.appendChild(th)}
  const st=document.createElement("th");st.className="statusHead";st.textContent="STATUS";h.appendChild(st);
  $("head").innerHTML="";$("head").appendChild(h);
  const body=$("body");body.innerHTML="";
  for(const rec of visibleRecords){
   const tr=document.createElement("tr");tr.className=rec.isOut?"outRow":"activeRow";
   const nm=document.createElement("td");nm.className="playerNameCell";nm.textContent=rec.name;tr.appendChild(nm);
-  for(let w=1;w<=current;w++){
+  for(let w=7;w<=current;w++){
    const p=(rows[w]||[]).find(x=>key(x.name)===key(rec.name))||{};
    const [r1,r2]=pickResult(p,w,live,stored);
    const td=document.createElement("td");td.className="weekCell";
@@ -216,7 +216,7 @@ function render(rows,current,live,stored,currentPlayers){
   s.textContent=rec.isOut?"OUT":(rec.rule.allowed===1?"1 PICK LEFT":"2 PICKS LEFT");
   tr.appendChild(s);body.appendChild(tr);
  }
- $("notice").textContent="WEEKS 1–"+current+" • "+visibleRecords.length+" PLAYERS STILL IN • PICKS TOP-TO-BOTTOM";
+ $("notice").textContent="SESSION 2 • WEEKS 7–"+current+" • "+visibleRecords.length+" PLAYERS STILL IN • PICKS TOP-TO-BOTTOM";
 }
 async function load(){
  try{
@@ -224,7 +224,7 @@ async function load(){
   const currentPlayers=await rpc("get_leaderboard",{})||[];
   const current=Number(currentPlayers?.[0]?.week_number)||5;
   const rows={};
-  for(let w=1;w<=current;w++)rows[w]=await rpc("get_leaderboard_for_week",{p_week:w})||[];
+  for(let w=7;w<=current;w++)rows[w]=await rpc("get_leaderboard_for_week",{p_week:w})||[];
   const [live,stored]=await Promise.all([liveResults(),storedResults()]);
   render(rows,current,live,stored,currentPlayers);
  }catch(e){console.error(e);$("notice").textContent="COULD NOT LOAD LEADERBOARD: "+(e.message||"");}
