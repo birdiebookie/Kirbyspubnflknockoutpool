@@ -97,7 +97,7 @@
     "washington commanders": "LOSS",
     "wsh": "LOSS"
   },
-  "updated_at": "2026-10-25T21:57:15.755934+00:00",
+  "updated_at": "2026-10-25T22:45:00Z",
   "weeks": {
     "1": {
       "49ers": "WIN",
@@ -719,5 +719,7 @@
       "titans": "LOSS",
       "vikings": "WIN"
     }
-  }
+  },
+  "updated_et": "October 25, 2026 at 6:45 PM ET",
+  "source": "Week 7 completed-game results verified October 25, 2026; games still in progress are not marked final."
 }
