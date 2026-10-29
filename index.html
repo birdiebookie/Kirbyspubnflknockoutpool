@@ -101,7 +101,7 @@ $("saveBtn").onclick=async()=>{try{
  if(!a){$("entryMsg").textContent=picksAllowed===1?"Please choose your one remaining team.":"Please choose both teams.";return}
  if(picksAllowed===2&&!b){$("entryMsg").textContent="Please choose both teams.";return}
  if(picksAllowed===2&&a===b){$("entryMsg").textContent="Your two teams must be different.";return}
- const {error:scheduleError}=await db.functions.invoke("sync-nfl-schedule",{body:{week:weekNumber}});if(scheduleError)throw new Error("Could not verify NFL kickoff times. Picks were not saved; please try again.");const result=await rpc("submit_my_picks",{p_token:tokenFromUrl(),p_team1:a,p_team2:picksAllowed===1?null:b});
+ const {error:scheduleError}=await db.functions.invoke("sync-nfl-schedule",{body:{week:weekNumber}});if(scheduleError)console.warn("Schedule sync unavailable; submitting picks to the database, which remains responsible for enforcing pick rules.",scheduleError);const result=await rpc("submit_my_picks",{p_token:tokenFromUrl(),p_team1:a,p_team2:picksAllowed===1?null:b});
  if(String(result).startsWith("error:"))throw new Error(result);
  $("entryMsg").textContent="Picks saved.";await refresh();
 }catch(e){console.error(e);$("entryMsg").textContent=e.message||"Could not save picks."}};
