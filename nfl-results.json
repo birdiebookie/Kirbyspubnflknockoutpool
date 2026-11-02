@@ -97,7 +97,7 @@
     "washington commanders": "LOSS",
     "wsh": "LOSS"
   },
-  "updated_at": "2026-11-02T01:27:14.364288+00:00",
+  "updated_at": "2026-11-02T08:10:04.002561+00:00",
   "weeks": {
     "1": {
       "49ers": "WIN",
@@ -773,6 +773,7 @@
       "cle": "LOSS",
       "cleveland browns": "LOSS",
       "colts": "LOSS",
+      "commanders": "WIN",
       "cowboys": "LOSS",
       "dal": "LOSS",
       "dallas cowboys": "LOSS",
@@ -781,6 +782,7 @@
       "det": "WIN",
       "detroit lions": "WIN",
       "dolphins": "LOSS",
+      "eagles": "LOSS",
       "falcons": "LOSS",
       "gb": "WIN",
       "green bay packers": "WIN",
@@ -810,6 +812,8 @@
       "packers": "WIN",
       "panthers": "LOSS",
       "patriots": "WIN",
+      "phi": "LOSS",
+      "philadelphia eagles": "LOSS",
       "pit": "WIN",
       "pittsburgh steelers": "WIN",
       "raiders": "WIN",
@@ -821,7 +825,9 @@
       "ten": "LOSS",
       "tennessee titans": "LOSS",
       "titans": "LOSS",
-      "vikings": "LOSS"
+      "vikings": "LOSS",
+      "washington commanders": "WIN",
+      "wsh": "WIN"
     }
   }
 }
