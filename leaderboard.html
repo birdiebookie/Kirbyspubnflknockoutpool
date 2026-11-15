@@ -159,7 +159,7 @@ function render(rows,current,live,stored,currentPlayers){
   rec.lastWeekWin=(r1==="WIN"||r2==="WIN");
  });
  const visibleRecords=records;
- visibleRecords.sort((a,b)=>{if(a.isOut!==b.isOut)return a.isOut?1:-1;return a.name.localeCompare(b.name)});
+ visibleRecords.sort((a,b)=>{if(a.isOut!==b.isOut)return a.isOut?1:-1;if(!a.isOut&&!b.isOut&&a.rule.allowed!==b.rule.allowed)return b.rule.allowed-a.rule.allowed;return a.name.localeCompare(b.name,undefined,{sensitivity:"base"})});
  const h=document.createElement("tr");
  const n=document.createElement("th");n.className="playerName";n.textContent="PLAYER";h.appendChild(n);
  for(let w=7;w<=current;w++){const th=document.createElement("th");th.className="weekHead "+(w===7?"week1Head":"");th.textContent="WEEK "+w;h.appendChild(th)}
