@@ -177,7 +177,7 @@ function render(rows,current,live,stored,currentPlayers){
    const isCurrent=w===current;
    // Before the Sunday 1 PM Eastern lock, show submission status only.
    // Never reveal another player's selected team in the current week.
-   const hideCurrent=isCurrent&&currentWeekPicksHidden();
+   const hideCurrent=false;
    const firstSlot=makeSlot(p.team1,r1,hideCurrent);
    if(hideCurrent)firstSlot.textContent=p.team1?"PICKED":"NOT PICKED";
    // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
