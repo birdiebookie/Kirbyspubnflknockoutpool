@@ -63,7 +63,7 @@ const SUPABASE_URL="https://rkyupmpnsjjgditslpiz.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_hicUgD5WOhRlbPtwMzkaqQ_WktOF7qL";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const $=id=>document.getElementById(id);
-let myInfo=null;
+let myInfo=null,currentPickStatus={};
 function tokenFromUrl(){const q=new URLSearchParams(location.search);return q.get("token")||new URLSearchParams(location.hash.slice(1)).get("token")||""}
 async function loadMe(){const token=tokenFromUrl();if(!token){myInfo=null;return}try{const rows=await rpc("get_my_info",{p_token:token});myInfo=Array.isArray(rows)&&rows.length?rows[0]:null}catch(e){myInfo=null}}
 async function rpc(name,args){const{data,error}=await db.rpc(name,args);if(error)throw error;return data}
@@ -178,8 +178,9 @@ function render(rows,current,live,stored,currentPlayers){
    // Before the Sunday 1 PM Eastern lock, show submission status only.
    // Never reveal another player's selected team in the current week.
    const hideCurrent=isCurrent&&currentWeekPicksHidden()&&(!myInfo||key(rec.name)!==key(myInfo.name));
+   const submitted=currentPickStatus[key(rec.name)]||{};
    const firstSlot=makeSlot(p.team1,r1,hideCurrent);
-   if(hideCurrent)firstSlot.textContent=p.team1?"PICKED":"NOT PICKED";
+   if(hideCurrent)firstSlot.textContent=submitted.has_team1?"PICKED":"NOT PICKED";
    // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
    // Do not affect Week 1, Week 3, Week 2 second slot, or any pick/result logic.
    if(!isCurrent && !p.team1){firstSlot.className="pickslot pending week2NotPicked";firstSlot.textContent="MISSED";}
@@ -204,7 +205,7 @@ function render(rows,current,live,stored,currentPlayers){
      
      const secondSlot=makeSlot(p.team2,r2,hideCurrent);
      if(!isCurrent && !p.team2){secondSlot.className="pickslot pending week2NotPicked";secondSlot.textContent="MISSED";}
-     if(hideCurrent)secondSlot.textContent=p.team2?"PICKED":"NOT PICKED";
+     if(hideCurrent)secondSlot.textContent=submitted.has_team2?"PICKED":"NOT PICKED";
      
      stack.appendChild(firstSlot);
      stack.appendChild(secondSlot);
@@ -215,8 +216,8 @@ function render(rows,current,live,stored,currentPlayers){
      if(isCurrent){
        stack.innerHTML="";
        const out1=makeSlot("", "", true),out2=makeSlot("", "", true);
-       out1.textContent=hideCurrent?(p.team1?"PICKED":"NOT PICKED"):(p.team1||"NOT PICKED");
-       out2.textContent=hideCurrent?(p.team2?"PICKED":"NOT PICKED"):(p.team2||"NOT PICKED");
+       out1.textContent=hideCurrent?(submitted.has_team1?"PICKED":"NOT PICKED"):(p.team1||"NOT PICKED");
+       out2.textContent=hideCurrent?(submitted.has_team2?"PICKED":"NOT PICKED"):(p.team2||"NOT PICKED");
        stack.appendChild(out1);stack.appendChild(out2);
      }
    }
@@ -233,6 +234,8 @@ async function load(){
  try{
   await loadMe();
   const currentPlayers=await rpc("get_leaderboard",{})||[];
+  const statusRows=await rpc("get_current_week_pick_status",{})||[];
+  currentPickStatus={};statusRows.forEach(x=>{currentPickStatus[key(x.name)]=x});
   const current=Number(currentPlayers?.[0]?.week_number)||5;
   const rows={};
   for(let w=7;w<=current;w++)rows[w]=await rpc("get_leaderboard_for_week",{p_week:w})||[];
