@@ -1,0 +1,1 @@
+Trigger a fresh GitHub Pages publish of the current main branch. No application data or picks are changed.
