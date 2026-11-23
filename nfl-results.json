@@ -97,7 +97,7 @@
     "washington commanders": "LOSS",
     "wsh": "LOSS"
   },
-  "updated_at": "2026-11-23T03:17:04.534064+00:00",
+  "updated_at": "2026-11-23T13:15:35.823199+00:00",
   "weeks": {
     "1": {
       "49ers": "WIN",
@@ -284,6 +284,7 @@
       "wsh": "WIN"
     },
     "11": {
+      "49ers": "WIN",
       "ari": "LOSS",
       "arizona cardinals": "LOSS",
       "bal": "LOSS",
@@ -329,6 +330,8 @@
       "lv": "LOSS",
       "mia": "LOSS",
       "miami dolphins": "LOSS",
+      "min": "LOSS",
+      "minnesota vikings": "LOSS",
       "new orleans saints": "LOSS",
       "new york giants": "WIN",
       "new york jets": "WIN",
@@ -343,13 +346,16 @@
       "raiders": "LOSS",
       "ravens": "LOSS",
       "saints": "LOSS",
+      "san francisco 49ers": "WIN",
+      "sf": "WIN",
       "steelers": "LOSS",
       "tampa bay buccaneers": "LOSS",
       "tb": "LOSS",
       "ten": "LOSS",
       "tennessee titans": "LOSS",
       "texans": "WIN",
-      "titans": "LOSS"
+      "titans": "LOSS",
+      "vikings": "LOSS"
     },
     "2": {
       "49ers": "WIN",
