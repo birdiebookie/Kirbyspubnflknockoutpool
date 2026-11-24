@@ -97,7 +97,7 @@
     "washington commanders": "LOSS",
     "wsh": "LOSS"
   },
-  "updated_at": "2026-11-24T01:01:11.676766+00:00",
+  "updated_at": "2026-11-24T10:50:39.728457+00:00",
   "weeks": {
     "1": {
       "49ers": "WIN",
@@ -290,6 +290,7 @@
       "bal": "LOSS",
       "baltimore ravens": "LOSS",
       "bears": "WIN",
+      "bengals": "LOSS",
       "bills": "WIN",
       "broncos": "WIN",
       "buccaneers": "LOSS",
@@ -302,7 +303,10 @@
       "chi": "WIN",
       "chicago bears": "WIN",
       "chiefs": "WIN",
+      "cin": "LOSS",
+      "cincinnati bengals": "LOSS",
       "colts": "LOSS",
+      "commanders": "WIN",
       "cowboys": "WIN",
       "dal": "WIN",
       "dallas cowboys": "WIN",
@@ -355,7 +359,9 @@
       "tennessee titans": "LOSS",
       "texans": "WIN",
       "titans": "LOSS",
-      "vikings": "LOSS"
+      "vikings": "LOSS",
+      "washington commanders": "WIN",
+      "wsh": "WIN"
     },
     "2": {
       "49ers": "WIN",
