@@ -179,11 +179,11 @@ function render(rows,current,live,stored,currentPlayers){
    // Never reveal another player's selected team in the current week.
    const hideCurrent=isCurrent&&currentWeekPicksHidden()&&(!myInfo||key(rec.name)!==key(myInfo.name));
    const submitted=currentPickStatus[key(rec.name)]||{};
+   const allowedThisWeek=isCurrent?rec.rule.allowed:getRule(rec.name,rows,w,live,stored).allowed;
    const firstSlot=makeSlot(p.team1,r1,hideCurrent);
    if(hideCurrent)firstSlot.textContent=submitted.has_team1?"PICKED":"NOT PICKED";
-   // HISTORY ONLY: Week 2 first pick slot shows plain red NOT PICKED when no pick was made.
-   // Do not affect Week 1, Week 3, Week 2 second slot, or any pick/result logic.
-   if(!isCurrent && !p.team1){firstSlot.className="pickslot pending week2NotPicked";firstSlot.textContent="MISSED";}
+   // Only mark a missing pick as MISSED when the player was eligible for that slot.
+   if(!isCurrent && allowedThisWeek>=1 && !p.team1){firstSlot.className="pickslot pending week2NotPicked";firstSlot.textContent="MISSED";}
 
    // DISPLAY ONLY: when a player has one pick left, place the current week's
    // actual pick in the same visual row as the surviving prior-week winner.
@@ -204,7 +204,7 @@ function render(rows,current,live,stored,currentPlayers){
    }else{
      
      const secondSlot=makeSlot(p.team2,r2,hideCurrent);
-     if(!isCurrent && !p.team2){secondSlot.className="pickslot pending week2NotPicked";secondSlot.textContent="MISSED";}
+     if(!isCurrent && allowedThisWeek>=2 && !p.team2){secondSlot.className="pickslot pending week2NotPicked";secondSlot.textContent="MISSED";}
      if(hideCurrent)secondSlot.textContent=submitted.has_team2?"PICKED":"NOT PICKED";
      
      stack.appendChild(firstSlot);
