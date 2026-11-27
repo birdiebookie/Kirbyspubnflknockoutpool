@@ -97,7 +97,7 @@
     "washington commanders": "LOSS",
     "wsh": "LOSS"
   },
-  "updated_at": "2026-11-27T15:28:54.838235+00:00",
+  "updated_at": "2026-11-27T23:40:47.933655+00:00",
   "weeks": {
     "1": {
       "49ers": "WIN",
@@ -366,6 +366,7 @@
     "12": {
       "bears": "WIN",
       "bills": "WIN",
+      "broncos": "LOSS",
       "buf": "WIN",
       "buffalo bills": "WIN",
       "chi": "WIN",
@@ -374,6 +375,8 @@
       "cowboys": "LOSS",
       "dal": "LOSS",
       "dallas cowboys": "LOSS",
+      "den": "LOSS",
+      "denver broncos": "LOSS",
       "det": "LOSS",
       "detroit lions": "LOSS",
       "eagles": "WIN",
@@ -387,7 +390,10 @@
       "packers": "LOSS",
       "phi": "WIN",
       "philadelphia eagles": "WIN",
-      "rams": "WIN"
+      "pit": "WIN",
+      "pittsburgh steelers": "WIN",
+      "rams": "WIN",
+      "steelers": "WIN"
     },
     "2": {
       "49ers": "WIN",
