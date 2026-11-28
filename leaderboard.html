@@ -178,7 +178,7 @@ function render(rows,current,live,stored,currentPlayers){
    const isCurrent=w===current;
    // Before the Sunday 1 PM Eastern lock, show submission status only.
    // Never reveal another player's selected team in the current week.
-   const hideCurrent=false; // Current-week submitted picks are intentionally public on the leaderboard.
+   const hideCurrent=isCurrent&&currentWeekPicksHidden(); // Hide current-week picks until Sunday 1 PM ET, except completed games.
    const submitted=currentPickStatus[key(rec.name)]||{};
    const allowedThisWeek=isCurrent?rec.rule.allowed:getRule(rec.name,rows,w,live,stored).allowed;
    const firstSlot=makeSlot(p.team1,r1,hideCurrent);
@@ -206,9 +206,10 @@ function render(rows,current,live,stored,currentPlayers){
      stack.appendChild(spacer);
    }else{
      
-     const secondSlot=makeSlot(p.team2,r2,hideCurrent);
+     const hideSecond=hideCurrent&&r2!=="WIN"&&r2!=="LOSS";
+      const secondSlot=makeSlot(p.team2,r2,hideSecond);
      if(!isCurrent && allowedThisWeek>=2 && !p.team2){secondSlot.className="pickslot pending week2NotPicked";secondSlot.textContent="MISSED";}
-     if(hideCurrent)secondSlot.textContent=submitted.has_team2?"PICKED":"NOT PICKED";
+     if(hideSecond)secondSlot.textContent=submitted.has_team2?"PICKED":"NOT PICKED";
      
      stack.appendChild(firstSlot);
      stack.appendChild(secondSlot);
