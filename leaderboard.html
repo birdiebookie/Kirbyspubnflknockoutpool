@@ -181,8 +181,9 @@ function render(rows,current,live,stored,currentPlayers){
    const hideCurrent=isCurrent&&currentWeekPicksHidden(); // Hide current-week picks until Sunday 1 PM ET, except completed games.
    const submitted=currentPickStatus[key(rec.name)]||{};
    const allowedThisWeek=isCurrent?rec.rule.allowed:getRule(rec.name,rows,w,live,stored).allowed;
-   const firstSlot=makeSlot(p.team1,r1,hideCurrent);
-   if(hideCurrent)firstSlot.textContent=submitted.has_team1?"PICKED":"NOT PICKED";
+   const hideFirst=hideCurrent&&r1!=="WIN"&&r1!=="LOSS";
+   const firstSlot=makeSlot(p.team1,r1,hideFirst);
+   if(hideFirst)firstSlot.textContent=submitted.has_team1?"PICKED":"NOT PICKED";
    // Only mark a missing pick as MISSED when the player was eligible for that slot.
    if(!isCurrent && allowedThisWeek>=1 && !p.team1){firstSlot.className="pickslot pending week2NotPicked";firstSlot.textContent="MISSED";}
 
@@ -220,8 +221,8 @@ function render(rows,current,live,stored,currentPlayers){
      if(isCurrent){
        stack.innerHTML="";
        const out1=makeSlot("", "", true),out2=makeSlot("", "", true);
-       out1.textContent=hideCurrent?(submitted.has_team1?"PICKED":"NOT PICKED"):(p.team1||"NOT PICKED");
-       out2.textContent=hideCurrent?(submitted.has_team2?"PICKED":"NOT PICKED"):(p.team2||"NOT PICKED");
+       out1.textContent=(hideCurrent&&r1!=="WIN"&&r1!=="LOSS")?(submitted.has_team1?"PICKED":"NOT PICKED"):(p.team1||"NOT PICKED");
+       out2.textContent=(hideCurrent&&r2!=="WIN"&&r2!=="LOSS")?(submitted.has_team2?"PICKED":"NOT PICKED"):(p.team2||"NOT PICKED");
        stack.appendChild(out1);stack.appendChild(out2);
      }
    }
